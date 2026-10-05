@@ -1,0 +1,130 @@
+/* Variables */
+.mfn-countdown {
+    --mfn-countdown-spacing: 15px;
+    --mfn-countdown-separator-size: 1px;
+    --mfn-countdown-separator-color: rgba(0,0,0,.1);
+    --mfn-countdown-countdown-item-spacing: 10px;
+}
+ 
+.mfn-countdown { display: flex; flex-wrap: wrap; gap: var(--mfn-countdown-spacing); }
+.mfn-countdown .countdown-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--mfn-countdown-countdown-item-spacing); padding: 15px; box-sizing: border-box; }
+.mfn-countdown .countdown-item > * { margin-bottom: 0; }
+.mfn-countdown .countdown-item .counter-number { display: flex; justify-content: center; align-items: center; font-size: 2em; color: var(--mfn-countdown-number-color); box-sizing: border-box; }
+.mfn-countdown .countdown-item .counter-number,
+.mfn-countdown .countdown-item .counter-title { line-height: 1; }
+.mfn-countdown .countdown-separator { display: flex; position:relative }
+.mfn-countdown .countdown-separator.colon { align-items: center; font-size: 2em; }
+
+.mfn-countdown-order-title-number .counter-title{order:1}
+.mfn-countdown-order-title-number .counter-number{order:2}
+
+/* Show */
+
+.mfn-countdown-show-hms .hide-days,
+.mfn-countdown-show-dhm .hide-seconds,
+.mfn-countdown-show-dh .hide-minutes,
+.mfn-countdown-show-dh .hide-seconds,
+.mfn-countdown-show-d .hide-hours,
+.mfn-countdown-show-d .hide-minutes,
+.mfn-countdown-show-d .hide-seconds{display:none}
+
+@media only screen and (max-width: 1440px) {
+  .mfn-countdown-show-laptop-hms .hide-hours,
+  .mfn-countdown-show-laptop-hms .hide-minutes,
+  .mfn-countdown-show-laptop-hms .hide-seconds,
+  .mfn-countdown-show-laptop-dhms .hide-days,
+  .mfn-countdown-show-laptop-dhms .hide-hours,
+  .mfn-countdown-show-laptop-dhms .hide-minutes,
+  .mfn-countdown-show-laptop-dhms .hide-seconds,
+  .mfn-countdown-show-laptop-dhm .hide-days,
+  .mfn-countdown-show-laptop-dhm .hide-hours,
+  .mfn-countdown-show-laptop-dhm .hide-minutes,
+  .mfn-countdown-show-laptop-dh .hide-days,
+  .mfn-countdown-show-laptop-dh .hide-hours{display:flex}
+
+  .mfn-countdown-show-laptop-hms .hide-days,
+  .mfn-countdown-show-laptop-dhm .hide-seconds,
+  .mfn-countdown-show-laptop-dh .hide-minutes,
+  .mfn-countdown-show-laptop-dh .hide-seconds,
+  .mfn-countdown-show-laptop-d .hide-hours,
+  .mfn-countdown-show-laptop-d .hide-minutes,
+  .mfn-countdown-show-laptop-d .hide-seconds{display:none}
+}
+@media only screen and (max-width: 959px) {
+  .mfn-countdown-show-tablet-hms .hide-hours,
+  .mfn-countdown-show-tablet-hms .hide-minutes,
+  .mfn-countdown-show-tablet-hms .hide-seconds,
+  .mfn-countdown-show-tablet-dhms .hide-days,
+  .mfn-countdown-show-tablet-dhms .hide-hours,
+  .mfn-countdown-show-tablet-dhms .hide-minutes,
+  .mfn-countdown-show-tablet-dhms .hide-seconds,
+  .mfn-countdown-show-tablet-dhm .hide-days,
+  .mfn-countdown-show-tablet-dhm .hide-hours,
+  .mfn-countdown-show-tablet-dhm .hide-minutes,
+  .mfn-countdown-show-tablet-dh .hide-days,
+  .mfn-countdown-show-tablet-dh .hide-hours{display:flex}
+
+  .mfn-countdown-show-tablet-hms .hide-days,
+  .mfn-countdown-show-tablet-dhm .hide-seconds,
+  .mfn-countdown-show-tablet-dh .hide-minutes,
+  .mfn-countdown-show-tablet-dh .hide-seconds,
+  .mfn-countdown-show-tablet-d .hide-hours,
+  .mfn-countdown-show-tablet-d .hide-minutes,
+  .mfn-countdown-show-tablet-d .hide-seconds{display:none}
+}
+@media only screen and (max-width: 767px) {
+  .mfn-countdown-show-mobile-hms .hide-hours,
+  .mfn-countdown-show-mobile-hms .hide-minutes,
+  .mfn-countdown-show-mobile-hms .hide-seconds,
+  .mfn-countdown-show-mobile-dhms .hide-days,
+  .mfn-countdown-show-mobile-dhms .hide-hours,
+  .mfn-countdown-show-mobile-dhms .hide-minutes,
+  .mfn-countdown-show-mobile-dhms .hide-seconds,
+  .mfn-countdown-show-mobile-dhm .hide-days,
+  .mfn-countdown-show-mobile-dhm .hide-hours,
+  .mfn-countdown-show-mobile-dhm .hide-minutes,
+  .mfn-countdown-show-mobile-dh .hide-days,
+  .mfn-countdown-show-mobile-dh .hide-hours{display:flex}
+
+  .mfn-countdown-show-mobile-hms .hide-days,
+  .mfn-countdown-show-mobile-dhm .hide-seconds,
+  .mfn-countdown-show-mobile-dh .hide-minutes,
+  .mfn-countdown-show-mobile-dh .hide-seconds,
+  .mfn-countdown-show-mobile-d .hide-hours,
+  .mfn-countdown-show-mobile-d .hide-minutes,
+  .mfn-countdown-show-mobile-d .hide-seconds{display:none}
+}
+
+/* Positions */
+
+.mfn-countdown-left { justify-content: flex-start; }
+.mfn-countdown-center { justify-content: center; }
+.mfn-countdown-right { justify-content: flex-end; }
+
+@media only screen and (max-width: 767px) {
+  .mfn-countdown .countdown-item{padding:5px 15px}
+
+  .mfn-countdown-mobile-left { justify-content: flex-start; }
+  .mfn-countdown-mobile-center { justify-content: center; }
+  .mfn-countdown-mobile-right { justify-content: flex-end; }
+
+  .mfn-countdown-mobile-vertical.mfn-countdown-mobile-left { align-items: flex-start; justify-content: unset; }
+  .mfn-countdown-mobile-vertical.mfn-countdown-mobile-center { align-items: center; justify-content: unset; }
+  .mfn-countdown-mobile-vertical.mfn-countdown-mobile-right { align-items: flex-end; justify-content: unset; }
+}
+
+/* Separator */
+
+@media only screen and (min-width: 768px) {
+  .mfn-countdown-separator-off .countdown-separator { display: none !important; }
+}
+
+@media only screen and (max-width: 767px) {
+  .mfn-countdown-separator-mobile-off .countdown-separator { display: none !important; }
+}
+
+/* Mobile vertical */
+
+@media only screen and (max-width: 767px) {
+  .mfn-countdown-mobile-vertical { flex-direction: column; align-items: center; }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 2,
+  "name": "mfn/free-delivery",
+  "title": "Betheme Free Delivery",
+  "category": "woocommerce",
+  "icon": "cart",
+  "description": "Betheme Free delivery progress bar",
+  "supports": {
+    "html": false
+  },
+  "parent": [
+    "woocommerce/cart-totals-block",
+    "woocommerce/cart-order-summary-block",
+    "woocommerce/checkout-totals-block"
+  ],
+  "editorScript": "file:./build/index.js",
+  "viewScript": "file:./build/view.js",
+  "style": "file:./build/style-index.css"
+}

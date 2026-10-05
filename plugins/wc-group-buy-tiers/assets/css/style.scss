@@ -1,0 +1,335 @@
+// Variables
+$primary-color: #e44d26;
+$secondary-color: #f16529;
+$accent-color: #FF5722;
+$bg-dark: #161b27;
+$border-dark: #232840;
+$white: #fff;
+$text-muted: #555;
+$text-light: #aaa;
+$shadow-soft: 0 4px 15px rgba(0, 0, 0, 0.1);
+$shadow-glow: 0 4px 15px rgba(228, 77, 38, 0.3);
+
+// Mixins
+@mixin flex-center {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+@mixin transition-standard {
+	transition: all 0.3s ease;
+}
+
+// Global Styles / Common
+.gb-info-box {
+	position: relative;
+	border-left: 4px solid $primary-color !important;
+	background: #fffcfb;
+	padding: 25px;
+	border: 1px solid #ffeada;
+	border-radius: 16px;
+	margin-bottom: 30px;
+	box-shadow: 0 10px 30px rgba(228, 77, 38, 0.05);
+
+	.gb-deal-timer-wrapper {
+		margin-bottom: 25px;
+
+		strong {
+			display: block;
+			margin-bottom: 12px;
+			font-size: 1.1em;
+			color: #1a1a1a;
+		}
+	}
+
+	.gb-sales-info {
+		margin-top: 20px;
+		font-size: 1.1em;
+		color: #1a1a1a;
+		font-weight: 500;
+	}
+}
+
+// Timer Component
+.gb-timer {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+
+	&.gb-timer-compact {
+		gap: 4px;
+		transform: scale(0.85);
+		transform-origin: left;
+
+		.gb-time-unit {
+			padding: 4px 8px;
+			min-width: 40px;
+
+			.gb-unit-value {
+				font-size: 1.1em;
+			}
+
+			.gb-unit-label {
+				font-size: 8px;
+			}
+		}
+	}
+
+	.gb-time-unit {
+		background: $white;
+		border: 1px solid #eee;
+		border-radius: 8px;
+		padding: 10px;
+		min-width: 60px;
+		text-align: center;
+		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+
+		.gb-unit-value {
+			display: block;
+			font-family: 'Inter', sans-serif;
+			font-weight: 800;
+			color: $primary-color;
+			font-size: 1.4em;
+			line-height: 1.2;
+		}
+
+		.gb-unit-label {
+			display: block;
+			font-size: 10px;
+			text-transform: uppercase;
+			color: #888;
+			letter-spacing: 0.5px;
+			margin-top: 2px;
+		}
+	}
+
+	.gb-time-separator {
+		font-weight: 800;
+		color: #ccc;
+		font-size: 1.25em;
+	}
+}
+
+// Archive/Badge Specifics
+.gb-archive-wrapper {
+	position: relative;
+	z-index: 5;
+}
+
+.gb-archive-timer {
+	background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+	color: $white;
+	padding: 6px 12px;
+	border-radius: 20px;
+	display: inline-flex;
+	font-weight: 700;
+	font-size: 12px;
+	line-height: 1;
+	margin-bottom: 6px;
+	box-shadow: 0 4px 10px rgba(228, 77, 38, 0.2);
+	animation: pulse-orange 2s infinite ease-in-out;
+
+	.gb-countdown {
+		color: $white;
+		font-size: 12px;
+		min-width: auto;
+		font-family: inherit;
+	}
+}
+
+// Grid Layout
+.gb-deal-grid {
+	display: grid;
+	gap: 30px;
+	margin: 30px 0;
+
+	@for $i from 2 through 4 {
+		&.gb-cols-#{$i} {
+			grid-template-columns: repeat(#{$i}, 1fr);
+		}
+	}
+}
+
+// Deal Item Component
+.gb-deal-item {
+	position: relative;
+	background: $bg-dark;
+	border: 1px solid $border-dark;
+	border-radius: 4px;
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	@include transition-standard;
+
+	&:hover {
+		transform: translateY(-5px);
+		box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+	}
+
+	&.ending:before {
+		content: "";
+		width: 100%;
+		height: 2px;
+		background: $accent-color;
+		position: absolute;
+		left: 0;
+		top: 0;
+	}
+
+	.gb-deal-link {
+		display: flex;
+		text-decoration: none;
+		flex-direction: column; // Adjusting to column flow for compact info
+	}
+
+	.gb-deal-image {
+		margin-bottom: 15px;
+		border-radius: 5px;
+		overflow: hidden;
+		margin-right: 16px;
+
+		img {
+			display: block;
+			width: 100px;
+			height: 100px;
+			object-fit: cover;
+			border-radius: 5px;
+		}
+	}
+
+	.gb-compact-info {
+		margin-bottom: 10px;
+
+		.gb-compact-info-timer {
+			margin-bottom: 15px;
+		}
+	}
+
+	.gb-deal-title {
+		font-size: 1.1em;
+		margin: 0 0 10px;
+		font-weight: 700;
+		color: $white;
+		min-height: 2.4em;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.gb-deal-price {
+		font-size: 1.25em;
+		font-weight: 800;
+		color: $primary-color;
+		margin-bottom: 15px;
+
+		del {
+			font-size: 0.8em;
+			color: #999;
+			margin-right: 5px;
+			font-weight: 400;
+		}
+
+		ins {
+			text-decoration: none;
+		}
+	}
+
+	.gb-sales-count {
+		font-size: 0.9em;
+		font-weight: 600;
+		color: $text-muted;
+	}
+}
+
+// Badges
+.gb-discount-badge {
+	position: absolute;
+	top: 15px;
+	right: 15px;
+	background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+	color: $white;
+	padding: 6px 12px;
+	border-radius: 50px;
+	font-weight: 800;
+	font-size: 14px;
+	z-index: 10;
+	box-shadow: $shadow-glow;
+	animation: badge-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+// Controls
+.gb-add-to-cart-wrapper {
+	margin-top: 10px;
+
+	.button {
+		width: 100%;
+		text-align: center;
+		border-radius: 8px;
+		padding: 12px 20px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		background: #1a1a1a;
+		color: $white;
+		border: none;
+		@include transition-standard;
+
+		&:hover {
+			background: $primary-color;
+			transform: scale(1.02);
+		}
+
+		&.loading {
+			opacity: 0.7;
+		}
+
+		&.added::after {
+			content: ' ✓';
+			margin-left: 5px;
+		}
+	}
+}
+
+// Animations
+@keyframes badge-pop {
+	0% {
+		transform: scale(0.5);
+		opacity: 0;
+	}
+
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+@keyframes pulse-orange {
+	0% {
+		transform: scale(1);
+	}
+
+	50% {
+		transform: scale(1.02);
+	}
+
+	100% {
+		transform: scale(1);
+	}
+}
+
+// Responsive
+@media (max-width: 768px) {
+	.gb-deal-grid {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 15px;
+	}
+}
+
+@media (max-width: 480px) {
+	.gb-deal-grid {
+		grid-template-columns: 1fr;
+	}
+}

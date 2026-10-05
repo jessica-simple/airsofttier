@@ -1,0 +1,714 @@
+/* Wishlist Redesign Styles */
+
+.wishlist-page {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #222;
+}
+
+.wishlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+}
+
+.wishlist-header h1 {
+    margin: 0;
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.wishlist-header p {
+    color: #666;
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+.wishlist-count {
+    background: #fff5f5;
+    color: #dc2626;
+    padding: 12px 22px;
+    border-radius: 12px;
+    font-weight: 600;
+    border: 1px solid #ffd6d6;
+    font-size: 15px;
+    transition: all 0.3s ease;
+}
+
+.wishlist-count:hover {
+    background: #ffebeb;
+}
+
+/* Wishlist Cards Container */
+.wishlist-items-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.wishlist-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px;
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    position: relative;
+    border: 1px solid #eee;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .04);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.wishlist-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, .07);
+}
+
+.wishlist-image {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wishlist-image img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 15px;
+    border: 1px solid #f9f9f9;
+}
+
+.wishlist-content {
+    flex: 1;
+}
+
+.product-tag {
+    display: inline-block;
+    background: #fff1f1;
+    color: #dc2626;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.wishlist-content h2 {
+    margin: 10px 0 5px;
+    font-size: 17px !important;
+    line-height: 1.25;
+    font-weight: 700;
+    padding-right: 40px;
+}
+
+.stock-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.stock-status.in-stock {
+    color: #16a34a;
+}
+
+.stock-status.out-of-stock {
+    color: #dc2626;
+}
+
+.stock-status .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.stock-status.in-stock .dot {
+    background: #16a34a;
+}
+
+.stock-status.out-of-stock .dot {
+    background: #dc2626;
+}
+
+.product-price .woocommerce-Price-amount.amount {
+    margin-top: 15px;
+    font-size: 17px !important;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+/* WooCommerce Price Styles Integration */
+.product-price del {
+    font-size: 20px;
+    color: #999;
+    margin-right: 12px;
+    text-decoration: line-through;
+    font-weight: 500;
+}
+
+.product-price ins {
+    text-decoration: none;
+    color: #dc2626;
+}
+
+.wishlist-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.wishlist-actions a {
+    padding: 3px 14px;
+    border-radius: 5px !important;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+    border-radius: 12px;
+    text-decoration: none !important;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-outline {
+    border: 1px solid #ddd;
+    color: #333;
+    background: #fff;
+}
+
+.btn-outline:hover {
+    background: #f8f8f8;
+    border-color: #ccc;
+    color: #111;
+}
+
+.btn-primary {
+    background: #dc2626;
+    color: #fff !important;
+}
+
+.btn-primary:hover {
+    background: #b91c1c;
+}
+
+.btn-primary.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.btn-primary.added::after {
+    content: " \2713";
+    margin-left: 6px;
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: #fff !important;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+}
+
+.wishlist-remove-form {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    margin: 0;
+}
+
+.wishlist-remove {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #eee;
+    background: #fff;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    padding: 12px;
+}
+
+.wishlist-remove:hover {
+    background: #fff5f5;
+    color: #dc2626;
+    border-color: #ffd6d6;
+    transform: scale(1.05);
+}
+
+/* Wishlist Features Section */
+.wishlist-features {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.feature-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 30px 25px;
+    text-align: center;
+    border: 1px solid #eee;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.feature-box .icon {
+    font-size: 34px;
+    margin-bottom: 15px;
+}
+
+.feature-box h4 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.feature-box p {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.wishlist-footer {
+    margin-top: 40px;
+    text-align: center;
+}
+
+/* Empty State Styles */
+.wishlist-empty-container {
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid #eee;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .04);
+    margin-bottom: 40px;
+}
+
+.wishlist-empty-container .empty-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.wishlist-empty-container h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 12px;
+}
+
+.wishlist-empty-container p {
+    color: #666;
+    font-size: 16px;
+    margin: 0 0 30px;
+}
+
+@media(max-width:991px) {
+    .wishlist-items-container {
+        grid-template-columns: 1fr;
+    }
+
+    .wishlist-image img {
+        width: 180px;
+        height: 180px;
+    }
+
+    .wishlist-content h2 {
+        font-size: 24px;
+    }
+
+    .product-price {
+        font-size: 30px;
+    }
+}
+
+@media(max-width:768px) {
+    .wishlist-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .wishlist-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 25px;
+    }
+
+    .wishlist-image {
+        width: 100%;
+    }
+
+    .wishlist-image img {
+        width: 100%;
+        height: auto;
+        max-height: 300px;
+    }
+
+    .wishlist-features {
+        grid-template-columns: 1fr;
+    }
+
+    .wishlist-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .wishlist-remove-form {
+        top: 20px;
+        right: 20px;
+    }
+}
+
+/* Loop & Product Page "Add to Wishlist" Button Styles */
+.betheme-child-wishlist-loop-button a.betheme-child-wishlist-button {
+    background-color: #fff !important;
+    color: #dc2626 !important;
+    border: 1px solid #fecaca !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease-in-out !important;
+    text-shadow: none !important;
+}
+
+.betheme-child-wishlist-loop-button a.betheme-child-wishlist-button:hover {
+    background-color: #fff5f5 !important;
+    border-color: #fca5a5 !important;
+    color: #b91c1c !important;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08) !important;
+}
+
+.betheme-child-wishlist-loop-button span.betheme-child-wishlist-added,
+.betheme-child-wishlist-loop-button .button.secondary.betheme-child-wishlist-added {
+    background-color: #f9fafb !important;
+    color: #9ca3af !important;
+    border: 1px solid #e5e7eb !important;
+    cursor: default !important;
+    opacity: 0.8 !important;
+    font-weight: 600 !important;
+}
+
+/* Coupons Page Styles */
+
+.coupons-page {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #222;
+}
+
+.coupons-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+}
+
+.coupons-header h1 {
+    margin: 0;
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.coupons-header p {
+    color: #666;
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+.coupons-count {
+    background: #fffbeb;
+    color: #b45309;
+    padding: 12px 22px;
+    border-radius: 12px;
+    font-weight: 600;
+    border: 1px solid #fde68a;
+    font-size: 15px;
+    transition: all 0.3s ease;
+}
+
+.coupons-count:hover {
+    background: #fef3c7;
+}
+
+.coupons-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+/* Coupon Ticket Style */
+.coupon-ticket {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #eee;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03);
+    display: flex;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.coupon-ticket:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+}
+
+.ticket-left {
+    width: 140px;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #b45309;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+    flex-shrink: 0;
+    border-right: 1px dashed rgba(180, 83, 9, 0.15);
+}
+
+.ticket-amount {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.ticket-amount .woocommerce-Price-amount {
+    font-size: 26px !important;
+    font-weight: 800;
+}
+
+.ticket-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-top: 6px;
+    letter-spacing: 0.05em;
+    opacity: 0.9;
+}
+
+.ticket-divider {
+    width: 20px;
+    position: relative;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ticket-divider .divider-line {
+    height: 100%;
+    border-left: 2px dashed #eee;
+}
+
+.ticket-divider .divider-notch {
+    width: 16px;
+    height: 16px;
+    background: #fdfdfd;
+    /* matches page background */
+    border: 1px solid #eee;
+    border-radius: 50%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.02);
+}
+
+.ticket-divider .divider-notch.top {
+    top: -9px;
+}
+
+.ticket-divider .divider-notch.bottom {
+    bottom: -9px;
+}
+
+.ticket-right {
+    flex: 1;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #fff;
+}
+
+.ticket-info {
+    margin-bottom: 20px;
+}
+
+.coupon-tag {
+    font-size: 10px;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.coupon-code-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin: 0 0 8px;
+    color: #111827;
+}
+
+.coupon-description {
+    font-size: 13px;
+    color: #666;
+    margin: 0;
+    line-height: 1.45;
+}
+
+.ticket-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    gap: 10px;
+}
+
+.coupon-expiry {
+    font-size: 12px;
+    color: #888;
+    display: inline-flex;
+    align-items: center;
+    line-height: 19px;
+}
+
+.coupon-copy-btn {
+    padding: 8px 18px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+    background: #111827 !important;
+    color: #fff !important;
+    transition: all 0.2s ease !important;
+    border: none !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+}
+
+.coupon-copy-btn:hover {
+    background: #374151 !important;
+}
+
+.coupon-copy-btn:active {
+    transform: scale(0.95);
+}
+
+.coupon-copy-btn.copied {
+    background: #10b981 !important;
+    color: #fff !important;
+}
+
+/* Empty State Styles */
+.coupons-empty-container {
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid #eee;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .04);
+    margin-bottom: 40px;
+}
+
+.coupons-empty-container svg {
+    width: 70px;
+    height: 70px;
+    color: var(--primary);
+}
+
+.coupons-empty-container .empty-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.coupons-empty-container h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 12px;
+}
+
+.coupons-empty-container p {
+    color: #666;
+    font-size: 16px;
+    margin: 0 0 30px;
+}
+
+/* Coupons Responsive */
+@media(max-width: 991px) {
+    .coupons-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media(max-width: 768px) {
+    .coupons-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+}
+
+@media(max-width: 480px) {
+    .coupon-ticket {
+        flex-direction: column;
+    }
+
+    .ticket-left {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px dashed rgba(180, 83, 9, 0.15);
+        padding: 25px 20px;
+    }
+
+    .ticket-divider {
+        display: none;
+    }
+
+    .ticket-right {
+        padding: 20px;
+    }
+
+    .ticket-meta-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .coupon-copy-btn {
+        width: 100%;
+        text-align: center;
+    }
+}

@@ -1,0 +1,794 @@
+# Copyright (C) 2026 Muffin group
+# This file is distributed under the Themeforest Split Licence.
+msgid ""
+msgstr ""
+"Project-Id-Version: Betheme 28.2.3\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/theme/product_grid_v2\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-01-28T10:45:43+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: betheme\n"
+
+#. Theme Name of the theme
+#: style.css
+msgid "Betheme"
+msgstr ""
+
+#. Theme URI of the theme
+#: style.css
+msgid "https://themes.muffingroup.com/betheme/"
+msgstr ""
+
+#. Description of the theme
+#: style.css
+msgid "The biggest WordPress Theme ever"
+msgstr ""
+
+#. Author of the theme
+#: style.css
+msgid "Muffin group"
+msgstr ""
+
+#. Author URI of the theme
+#: style.css
+msgid "https://muffingroup.com/"
+msgstr ""
+
+#: 404.php:35
+msgid "Ooops... Error 404"
+msgstr ""
+
+#: 404.php:36
+msgid "We are sorry, but the page you are looking for does not exist"
+msgstr ""
+
+#: 404.php:37
+msgid "Please check entered address and try again or "
+msgstr ""
+
+#: 404.php:38
+msgid "go to homepage"
+msgstr ""
+
+#: comments.php:13
+msgid "This post is password protected. Enter the password to view any comments."
+msgstr ""
+
+#: comments.php:20
+#, php-format
+msgid "%d Comment"
+msgid_plural "%d Comments"
+msgstr[0] ""
+msgstr[1] ""
+
+#: comments.php:29
+msgid "&larr; Older Comments"
+msgstr ""
+
+#: comments.php:30
+msgid "Newer Comments &rarr;"
+msgstr ""
+
+#: comments.php:37
+msgid "Comments are closed."
+msgstr ""
+
+#: functions/builder/class-mfn-builder-fields.php:18075
+#: functions/theme-shortcodes.php:14751
+#: includes/header-creative.php:9
+#: includes/header-side-slide.php:245
+#: includes/header-top-bar-right.php:88
+#: searchform.php:15
+msgid "Enter your search"
+msgstr ""
+
+#: functions/builder/class-mfn-builder-front.php:1582
+#: includes/content-post.php:376
+msgid "There are no posts on the list."
+msgstr ""
+
+#: functions/builder/class-mfn-builder-woo-helper.php:78
+#: functions/theme-woocommerce.php:472
+#: woocommerce/single-product/product-image.php:53
+msgid "Add to wishlist"
+msgstr ""
+
+#: functions/modules/class-mfn-query-pagination.php:26
+#: functions/theme-functions.php:1529
+msgid "Prev page"
+msgstr ""
+
+#: functions/modules/class-mfn-query-pagination.php:27
+#: functions/theme-functions.php:1530
+msgid "Next page"
+msgstr ""
+
+#: functions/modules/class-mfn-query-pagination.php:28
+#: functions/theme-functions.php:1531
+#: woocommerce/loop/pagination.php:51
+msgid "Load more"
+msgstr ""
+
+#: functions/theme-functions.php:1363
+msgid "Share"
+msgstr ""
+
+#: functions/theme-functions.php:1731
+#: header-shop.php:211
+#: includes/header-template.php:208
+msgid "Home"
+msgstr ""
+
+#: functions/theme-functions.php:2460
+msgid "Zoom"
+msgstr ""
+
+#: functions/theme-functions.php:2461
+msgid "Go to website"
+msgstr ""
+
+#: functions/theme-functions.php:2462
+msgid "Details"
+msgstr ""
+
+#: functions/theme-functions.php:3276
+msgid "comment"
+msgstr ""
+
+#: functions/theme-functions.php:3277
+msgid "comments"
+msgstr ""
+
+#: functions/theme-functions.php:3278
+msgid "comments off"
+msgstr ""
+
+#: functions/theme-head.php:1483
+#: visual-builder/classes/visual-builder-class.php:569
+msgid "Pages"
+msgstr ""
+
+#: functions/theme-head.php:1484
+#: functions/theme-shortcodes.php:5761
+#: includes/content-post.php:18
+#: includes/content-single-portfolio.php:74
+#: includes/content-single.php:66
+#: index.php:107
+#: taxonomy-portfolio-types.php:77
+#: template-portfolio.php:93
+#: visual-builder/classes/visual-builder-class.php:570
+msgid "Categories"
+msgstr ""
+
+#. Template Name of the theme
+#: functions/theme-head.php:1485
+#: visual-builder/classes/visual-builder-class.php:571
+msgid "Portfolio"
+msgstr ""
+
+#: functions/theme-head.php:1486
+#: visual-builder/classes/visual-builder-class.php:572
+msgid "Posts"
+msgstr ""
+
+#: functions/theme-head.php:1487
+#: visual-builder/classes/visual-builder-class.php:573
+msgid "Products"
+msgstr ""
+
+#: functions/theme-head.php:1492
+#: visual-builder/classes/visual-builder-class.php:579
+msgid "Header container"
+msgstr ""
+
+#: functions/theme-head.php:1493
+#: visual-builder/classes/visual-builder-class.php:580
+msgid "Toggle submenu"
+msgstr ""
+
+#: functions/theme-head.php:1500
+msgid "Link copied to the clipboard."
+msgstr ""
+
+#: functions/theme-head.php:1501
+msgid "Something went wrong. Please try again later!"
+msgstr ""
+
+#: functions/theme-menu.php:81
+#: functions/theme-menu.php:104
+msgid "Main menu"
+msgstr ""
+
+#: functions/theme-menu.php:143
+msgid "Split Main menu"
+msgstr ""
+
+#: functions/theme-menu.php:237
+msgid "Overlay Main menu"
+msgstr ""
+
+#: functions/theme-menu.php:346
+msgid "Skip Links Menu"
+msgstr ""
+
+#: functions/theme-shortcodes.php:1667
+#: includes/header-login.php:53
+#, php-format
+msgid "Hello %s"
+msgstr ""
+
+#: functions/theme-shortcodes.php:3877
+msgid "Before"
+msgstr ""
+
+#: functions/theme-shortcodes.php:3880
+msgid "After"
+msgstr ""
+
+#: functions/theme-shortcodes.php:4340
+msgid "Choose"
+msgstr ""
+
+#: functions/theme-shortcodes.php:4363
+#: functions/theme-shortcodes.php:4376
+#: functions/theme-shortcodes.php:4399
+#: functions/theme-shortcodes.php:4412
+#: functions/theme-shortcodes.php:4428
+#: functions/theme-shortcodes.php:4453
+msgid "See more"
+msgstr ""
+
+#: functions/theme-shortcodes.php:4363
+#: functions/theme-shortcodes.php:4376
+#: functions/theme-shortcodes.php:4399
+#: functions/theme-shortcodes.php:4412
+#: functions/theme-shortcodes.php:4428
+#: functions/theme-shortcodes.php:4453
+msgid "See less"
+msgstr ""
+
+#: functions/theme-shortcodes.php:5757
+#: index.php:103
+#: taxonomy-portfolio-types.php:75
+#: template-portfolio.php:91
+msgid "Filter by"
+msgstr ""
+
+#: functions/theme-shortcodes.php:5758
+#: includes/content-single.php:65
+#: index.php:104
+msgid "Tags"
+msgstr ""
+
+#: functions/theme-shortcodes.php:5759
+#: index.php:105
+msgid "Authors"
+msgstr ""
+
+#: functions/theme-shortcodes.php:5760
+#: functions/theme-shortcodes.php:11769
+#: index.php:108
+#: taxonomy-portfolio-types.php:78
+#: template-portfolio.php:94
+msgid "All"
+msgstr ""
+
+#: functions/theme-shortcodes.php:5904
+#: functions/theme-shortcodes.php:5922
+#: functions/theme-shortcodes.php:5940
+msgid "icon close"
+msgstr ""
+
+#: functions/theme-shortcodes.php:6021
+#: functions/theme-shortcodes.php:12028
+#: includes/content-portfolio.php:16
+#: includes/content-post.php:20
+#: includes/content-single-portfolio.php:77
+#: includes/content-single.php:69
+#: search.php:50
+msgid "Read more"
+msgstr ""
+
+#: functions/theme-shortcodes.php:6343
+#: includes/content-post.php:16
+#: includes/content-single-portfolio.php:72
+#: includes/content-single.php:63
+#: search.php:47
+#: single-download.php:14
+msgid "Published by"
+msgstr ""
+
+#: functions/theme-shortcodes.php:6344
+#: includes/content-post.php:17
+#: includes/content-single-portfolio.php:73
+#: includes/content-single.php:64
+#: search.php:48
+#: single-download.php:15
+msgid "at"
+msgstr ""
+
+#: functions/theme-shortcodes.php:6437
+msgid "comments number"
+msgstr ""
+
+#: functions/theme-shortcodes.php:6661
+#: functions/theme-shortcodes.php:6685
+msgid "view product"
+msgstr ""
+
+#: functions/theme-shortcodes.php:8343
+#: functions/theme-shortcodes.php:8448
+#: functions/theme-shortcodes.php:8645
+#: under-construction.php:30
+msgid "days"
+msgstr ""
+
+#: functions/theme-shortcodes.php:8344
+#: functions/theme-shortcodes.php:8449
+#: functions/theme-shortcodes.php:8646
+#: under-construction.php:31
+msgid "hours"
+msgstr ""
+
+#: functions/theme-shortcodes.php:8345
+#: functions/theme-shortcodes.php:8450
+#: functions/theme-shortcodes.php:8647
+#: under-construction.php:32
+msgid "minutes"
+msgstr ""
+
+#: functions/theme-shortcodes.php:8346
+#: functions/theme-shortcodes.php:8451
+#: functions/theme-shortcodes.php:8648
+#: under-construction.php:33
+msgid "seconds"
+msgstr ""
+
+#: functions/theme-shortcodes.php:9305
+#: includes/content-portfolio.php:230
+msgid "zoom image"
+msgstr ""
+
+#: functions/theme-shortcodes.php:9841
+msgid "Copied"
+msgstr ""
+
+#: functions/theme-shortcodes.php:9946
+msgid "button with icon"
+msgstr ""
+
+#: functions/theme-shortcodes.php:10425
+#: includes/content-post.php:223
+#: includes/content-single-portfolio.php:145
+#: includes/content-single.php:142
+#: includes/header-single-intro.php:107
+msgid "author"
+msgstr ""
+
+#: functions/theme-shortcodes.php:11382
+#: functions/theme-shortcodes.php:11537
+#: includes/include-slogan.php:18
+#: includes/include-slogan.php:21
+msgid "phone"
+msgstr ""
+
+#: functions/theme-shortcodes.php:11391
+#: functions/theme-shortcodes.php:11559
+#: includes/include-slogan.php:24
+msgid "mail"
+msgstr ""
+
+#: functions/theme-shortcodes.php:13132
+msgid "Tab shortcode does not work inside another tab."
+msgstr ""
+
+#: functions/theme-shortcodes.php:14752
+#: includes/header-live-search.php:2
+msgid "Not found text"
+msgstr ""
+
+#: functions/theme-shortcodes.php:14753
+#: includes/header-live-search.php:3
+msgid "See all results"
+msgstr ""
+
+#: functions/theme-sidebars.php:26
+msgid "Custom sidebar created in Theme Options."
+msgstr ""
+
+#: functions/theme-sidebars.php:41
+msgid "Appears in the Footer section of the site."
+msgstr ""
+
+#: functions/theme-sidebars.php:55
+msgid "Appears in the Sliding Top section of the site."
+msgstr ""
+
+#: functions/theme-sidebars.php:68
+msgid "Main sidebar for Search page that appears on the right. Leave it empty to use Full Width layout."
+msgstr ""
+
+#: functions/theme-sidebars.php:80
+msgid "Main sidebar for bbPress pages that appears on the right. Leave it empty to use Full Width layout."
+msgstr ""
+
+#: functions/theme-sidebars.php:92
+msgid "Main sidebar for BuddyPress pages that appears on the right. Leave it empty to use Full Width layout."
+msgstr ""
+
+#: functions/theme-sidebars.php:104
+msgid "Main sidebar for The Events Calendar pages that appears on the right. Leave it empty to use Full Width layout."
+msgstr ""
+
+#: functions/theme-sidebars.php:116
+msgid "Main sidebar for Easy Digital Downloads single pages that appears on the right. Leave it empty to use Full Width layout."
+msgstr ""
+
+#: functions/theme-sidebars.php:128
+msgid "Main sidebar for WooCommerce pages that appears on the right. Leave it empty to use Full Width layout."
+msgstr ""
+
+#: functions/theme-sidebars.php:157
+msgid "Sidebar for Blog Category. Appears only when you select sidebar for Blog."
+msgstr ""
+
+#: functions/theme-sidebars.php:181
+msgid "Appears on Portfolio Category Page."
+msgstr ""
+
+#: functions/theme-woocommerce.php:246
+msgid "Please choose the quantity of items you wish to add to your cart…"
+msgstr ""
+
+#: functions/theme-woocommerce.php:1682
+#, php-format
+msgid "You are %s short for free delivery."
+msgstr ""
+
+#: functions/theme-woocommerce.php:1683
+msgid "Your order qualifies for free shipping!"
+msgstr ""
+
+#: functions/theme-woocommerce.php:1764
+msgid "Someone"
+msgstr ""
+
+#: functions/theme-woocommerce.php:1765
+msgid "bought the product"
+msgstr ""
+
+#: functions/theme-woocommerce.php:1766
+#, php-format
+msgid "has been bought %s times recently."
+msgstr ""
+
+#: functions/theme-woocommerce.php:1884
+msgid "Could not verify reCAPTCHA."
+msgstr ""
+
+#: functions/theme-woocommerce.php:1885
+msgid "Please complete the reCAPTCHA."
+msgstr ""
+
+#: functions/theme-woocommerce.php:1922
+msgid "Error: Could not verify reCAPTCHA."
+msgstr ""
+
+#: functions/theme-woocommerce.php:1923
+msgid "Error: Please complete the reCAPTCHA."
+msgstr ""
+
+#: functions/widgets/class-mfn-widget-comments.php:36
+msgid "commented on"
+msgstr ""
+
+#: includes/content-portfolio.php:17
+#: includes/content-single-portfolio.php:78
+msgid "Client"
+msgstr ""
+
+#: includes/content-portfolio.php:18
+#: includes/content-single-portfolio.php:79
+msgid "Date"
+msgstr ""
+
+#: includes/content-portfolio.php:19
+#: includes/content-single-portfolio.php:80
+msgid "Website"
+msgstr ""
+
+#: includes/content-portfolio.php:20
+#: includes/content-single-portfolio.php:81
+msgid "View website"
+msgstr ""
+
+#: includes/content-portfolio.php:234
+msgid "go to external link"
+msgstr ""
+
+#: includes/content-portfolio.php:237
+msgid "go to link"
+msgstr ""
+
+#: includes/content-portfolio.php:277
+msgid "previous project"
+msgstr ""
+
+#: includes/content-portfolio.php:278
+msgid "next project"
+msgstr ""
+
+#: includes/content-portfolio.php:279
+msgid "all projects"
+msgstr ""
+
+#: includes/content-post.php:19
+msgid "Do you like it?"
+msgstr ""
+
+#: includes/content-post.php:242
+#: includes/content-post.php:267
+#: includes/content-post.php:329
+msgid "number of comments"
+msgstr ""
+
+#: includes/content-single-portfolio.php:75
+#: includes/content-single.php:67
+#: index.php:106
+#: taxonomy-portfolio-types.php:76
+#: template-portfolio.php:92
+#: woocommerce/content-single-product.php:92
+msgid "Show all"
+msgstr ""
+
+#: includes/content-single-portfolio.php:76
+#: includes/content-single.php:68
+msgid "Related posts"
+msgstr ""
+
+#: includes/content-single-portfolio.php:82
+msgid "Task"
+msgstr ""
+
+#: includes/content-single-portfolio.php:152
+#: includes/header-single-intro.php:114
+msgid "published"
+msgstr ""
+
+#: includes/header-classic.php:82
+#: includes/header-template.php:105
+msgid "results found for:"
+msgstr ""
+
+#: includes/header-creative.php:8
+#: includes/header-side-slide.php:294
+#: includes/header-top-area.php:10
+msgid "No translations available for this page"
+msgstr ""
+
+#: includes/header-creative.php:25
+msgid "menu toggle icon"
+msgstr ""
+
+#: includes/header-creative.php:57
+#: includes/header-style-shop-split.php:52
+#: includes/header-top-area.php:73
+#: includes/header-top-bar-right.php:248
+#: includes/include-logo.php:163
+msgid "mobile menu"
+msgstr ""
+
+#: includes/header-creative.php:77
+msgid "search form close icon"
+msgstr ""
+
+#: includes/header-login.php:40
+msgid "shop account menu"
+msgstr ""
+
+#: includes/header-login.php:41
+msgid "close menu"
+msgstr ""
+
+#: includes/header-side-slide.php:82
+msgid "responsive menu"
+msgstr ""
+
+#: includes/header-side-slide.php:87
+msgid "menu close icon"
+msgstr ""
+
+#: includes/header-side-slide.php:116
+msgid "extras menu"
+msgstr ""
+
+#: includes/header-side-slide.php:138
+#: includes/header-side-slide.php:140
+msgid "whishlist icon"
+msgstr ""
+
+#: includes/header-side-slide.php:159
+#: includes/header-side-slide.php:161
+#: includes/header-top-bar-right.php:167
+#: includes/header-top-bar-right.php:169
+#: includes/woocommerce-cart.php:11
+#: includes/woocommerce-cart.php:13
+msgid "cart icon"
+msgstr ""
+
+#: includes/header-side-slide.php:173
+#: includes/header-top-bar-right.php:96
+#: searchform.php:10
+msgid "search icon"
+msgstr ""
+
+#: includes/header-side-slide.php:224
+msgid "language menu icon"
+msgstr ""
+
+#: includes/header-side-slide.php:239
+msgid "side slide search"
+msgstr ""
+
+#: includes/header-side-slide.php:251
+msgid "search submit icon"
+msgstr ""
+
+#: includes/header-side-slide.php:264
+msgid "language menu"
+msgstr ""
+
+#: includes/header-side-slide.php:304
+msgid "main menu"
+msgstr ""
+
+#: includes/header-single-intro.php:123
+#: includes/header-single-intro.php:139
+msgid "categories"
+msgstr ""
+
+#: includes/header-single-intro.php:152
+msgid "tags"
+msgstr ""
+
+#: includes/header-single-intro.php:170
+msgid "scroll down icon"
+msgstr ""
+
+#: includes/header-sliding-area.php:39
+msgid "Open sliding top"
+msgstr ""
+
+#: includes/header-sliding-area.php:39
+msgid "close sliding top"
+msgstr ""
+
+#: includes/header-top-bar-right.php:103
+#: includes/header-top-bar-right.php:188
+msgid "header search form"
+msgstr ""
+
+#: includes/header-top-bar-right.php:146
+#: includes/header-top-bar-right.php:148
+msgid "wishlist icon"
+msgstr ""
+
+#: includes/include-slogan.php:12
+msgid "contact details"
+msgstr ""
+
+#: includes/include-social.php:69
+msgid "RSS icon"
+msgstr ""
+
+#: includes/include-wpml.php:59
+msgid "Language menu icon"
+msgstr ""
+
+#: includes/off-canvas-sidebar.php:21
+msgid "off-canvas sidebar switch icon"
+msgstr ""
+
+#: includes/wishlist.php:20
+msgid "Your wishlist is empty."
+msgstr ""
+
+#: includes/woocommerce-cart.php:3
+msgid "shop cart"
+msgstr ""
+
+#: includes/woocommerce-list-options.php:6
+msgid "attribute filters"
+msgstr ""
+
+#: includes/woocommerce-list-options.php:52
+#: includes/woocommerce-list-options.php:57
+msgid "grid three columns"
+msgstr ""
+
+#: includes/woocommerce-list-options.php:53
+#: includes/woocommerce-list-options.php:59
+msgid "masonry"
+msgstr ""
+
+#: includes/woocommerce-list-options.php:54
+#: includes/woocommerce-list-options.php:60
+msgid "list"
+msgstr ""
+
+#: includes/woocommerce-list-options.php:58
+msgid "grid four columns"
+msgstr ""
+
+#: index.php:306
+#: search.php:177
+msgid "&larr; Older Entries"
+msgstr ""
+
+#: index.php:307
+#: search.php:178
+msgid "Newer Entries &rarr;"
+msgstr ""
+
+#: search.php:44
+msgid "Ooops..."
+msgstr ""
+
+#: search.php:45
+msgid "No results found for:"
+msgstr ""
+
+#: searchform.php:35
+msgid "Search"
+msgstr ""
+
+#: searchform.php:37
+msgid "Close"
+msgstr ""
+
+#. Template Name of the theme
+msgid "Archives"
+msgstr ""
+
+#: template-archives.php:29
+msgid "Available Pages"
+msgstr ""
+
+#: template-archives.php:38
+msgid "The 20 latest posts"
+msgstr ""
+
+#: template-archives.php:60
+msgid "Archives by Subject"
+msgstr ""
+
+#: template-archives.php:78
+msgid "Archives by Month"
+msgstr ""
+
+#. Template Name of the theme
+msgid "Blank Page"
+msgstr ""
+
+#. Template Name of the theme
+msgid "Sitemap"
+msgstr ""
+
+#. Template Name of the theme
+msgid "Under Construction"
+msgstr ""
+
+#: extensions/blocks/free-delivery-progress-bar/block.json
+msgctxt "block title"
+msgid "Betheme Free Delivery"
+msgstr ""
+
+#: extensions/blocks/free-delivery-progress-bar/block.json
+msgctxt "block description"
+msgid "Betheme Free delivery progress bar"
+msgstr ""

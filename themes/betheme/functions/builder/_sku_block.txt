@@ -1,0 +1,7 @@
+		// SKU — ''=Default(show), '1'=show, '0'=hide
+		if (!isset($attr['show_sku']) || $attr['show_sku'] !== '0') {
+			$sku = $product->get_sku();
+			if (!empty($sku)) {
+				$output .= '<div class="mfn-li-product-row mfn-li-product-row-sku">SKU: ' . esc_html($sku) . '</div>';
+			}
+		}
