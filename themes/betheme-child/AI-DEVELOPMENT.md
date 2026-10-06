@@ -59,9 +59,11 @@ Do not hard-code category names or child categories unless specifically required
 
 WooCommerce category filters are generated dynamically by BeTheme from taxonomy term data. A category filter parent is identified by its rendered checkbox label (`.mfn-advanced-filters-label.mfn-advanced-filters-checkbox-label`) and a direct child `<ul>`, not by its name or term ID.
 
-The existing accessible expand/collapse button and behavior are implemented in the child theme's `js/mfn-opt-expandable.js`, with its styling in `style.css`. The script marks only filter items with child lists as expandable, inserts a button separate from the checkbox label, and observes DOM updates so AJAX-refreshed filters receive the same behavior.
+The existing accessible expand/collapse button and behavior are implemented in the child theme's `js/mfn-opt-expandable.js`, with its styling in `style.css`. The child theme enqueues this script in the footer at priority 100 with a `jquery` dependency. It initializes on DOM readiness, observes DOM mutations, and reruns on BeTheme's `mfn:ajax:refresh` event so AJAX-refreshed filters receive the same behavior. It does not depend on BeTheme's WooCommerce script handle, which is not needed for this initializer.
 
-The filter markup previously included its child `<ul>` but did not carry the `.mfn-opt-expandable` class required by the existing child-theme handler. As a result, the existing handler never initialized those filter parents. Detection must remain generic: never hard-code category names or IDs for toggle behavior.
+The filter markup previously included its child `<ul>` but did not carry the `.mfn-opt-expandable` class required by the existing child-theme handler. The initializer now discovers those parents directly from their checkbox labels and child lists. Detection must remain generic: never hard-code category names or IDs for toggle behavior.
+
+The latest repository code confirms the script is enqueued for frontend requests; it does not prove the production `/shop/` response serves or executes the current child-theme file. The live host could not be resolved from the development environment, so verify the deployed script URL and execution on the live Shop page before declaring production behavior fixed. A stale deployment, cache, or script optimizer is a possible cause but is not confirmed.
 
 Never directly modify files inside `betheme/`.
 

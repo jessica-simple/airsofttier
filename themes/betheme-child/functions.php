@@ -17,15 +17,17 @@ add_action('wp_enqueue_scripts', function () {
     // Load child theme wishlist style
     wp_enqueue_style('child-wishlist-style', get_stylesheet_directory_uri() . '/css/wishlist.css', array('child-style'));
 
-    // Collapse expandable option lists until the visitor opens them.
+});
+
+add_action('wp_enqueue_scripts', function () {
     wp_enqueue_script(
         'betheme-child-mfn-opt-expandable',
         get_stylesheet_directory_uri() . '/js/mfn-opt-expandable.js',
-        array(),
+        array('jquery'),
         filemtime(get_stylesheet_directory() . '/js/mfn-opt-expandable.js'),
         true
     );
-});
+}, 100);
 
 add_action('wp_enqueue_scripts', function () {
     if (! wp_script_is('mfn-woojs', 'enqueued')) {

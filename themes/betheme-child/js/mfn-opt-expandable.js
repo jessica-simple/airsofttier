@@ -106,6 +106,10 @@
     function start() {
         initExpandableItems();
 
+        if (typeof window.jQuery !== 'undefined') {
+            window.jQuery(document).on('mfn:ajax:refresh', initExpandableItems);
+        }
+
         if (typeof MutationObserver !== 'undefined') {
             var observer = new MutationObserver(initExpandableItems);
             observer.observe(document.body, { childList: true, subtree: true });
