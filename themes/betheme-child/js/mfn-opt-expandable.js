@@ -5,8 +5,10 @@
     var childSelector = ':scope > ul, :scope > ol, :scope > .children, :scope > .mfn-opt-children, :scope > .mfn-opt-expandable-children';
     var itemIndex = 0;
     var expandableState = Object.create(null);
+    var nativeShowMoreState = Object.create(null);
     var mutationTimer = null;
     var toggleEventsInitialized = false;
+    var isResetting = false;
     var hiddenFilterLabels = {
         'best seller': true,
         'featured': true,
@@ -34,6 +36,31 @@
         return checkbox ? checkbox.name + ':' + checkbox.value : null;
     }
 
+    function getAdvancedFilterWrapper(expander) {
+        return expander.closest('.mfn-form-row-wrapper') || expander.closest('.mfn-form-row');
+    }
+
+    function getAdvancedFilterStateKey(expander) {
+        var wrapper = getAdvancedFilterWrapper(expander);
+
+        if (!wrapper) {
+            return null;
+        }
+
+        var checkbox = wrapper.querySelector('input[type="checkbox"][name^="tax_"][value]');
+
+        return checkbox ? 'advanced-filter:' + checkbox.name : null;
+    }
+
+    function getAdvancedFilterExpanders() {
+        return document.querySelectorAll('.mfn-advanced-filters .mfn-advanced-filters-expand');
+    }
+
+    function clearCustomState() {
+        expandableState = Object.create(null);
+        nativeShowMoreState = Object.create(null);
+    }
+
     function updateToggleState(item, toggle) {
         var isOpen = item.classList.contains('is-open');
 
@@ -45,6 +72,7 @@
         var stateKey = getStateKey(item);
 
         if (
+            isResetting ||
             stateKey === null ||
             !Object.prototype.hasOwnProperty.call(expandableState, stateKey)
         ) {
@@ -52,6 +80,73 @@
         }
 
         item.classList.toggle('is-open', expandableState[stateKey]);
+    }
+
+    function rememberNativeShowMoreState(expander) {
+        if (isResetting) {
+            return;
+        }
+
+        var stateKey = getAdvancedFilterStateKey(expander);
+
+        if (stateKey === null) {
+            return;
+        }
+
+        nativeShowMoreState[stateKey] = expander.classList.contains('mfn-expanded');
+    }
+
+    function rememberAllNativeShowMoreStates() {
+        if (isResetting) {
+            return;
+        }
+
+        Array.prototype.forEach.call(
+            getAdvancedFilterExpanders(),
+            rememberNativeShowMoreState
+        );
+    }
+
+    function restoreNativeShowMoreState(expander) {
+        if (isResetting) {
+            return;
+        }
+
+        var stateKey = getAdvancedFilterStateKey(expander);
+
+        if (
+            stateKey === null ||
+            !Object.prototype.hasOwnProperty.call(nativeShowMoreState, stateKey)
+        ) {
+            return;
+        }
+
+        var isExpanded = nativeShowMoreState[stateKey];
+        var label = isExpanded
+            ? expander.getAttribute('data-less')
+            : expander.getAttribute('data-more');
+
+        /*
+         * Only restore BeTheme's own expander state.
+         * Do not add/remove mfn-opt-hidden, reorder categories,
+         * or calculate the initial visible category count.
+         */
+        expander.classList.toggle('mfn-expanded', isExpanded);
+
+        if (label !== null) {
+            expander.textContent = label;
+        }
+    }
+
+    function restoreAllNativeShowMoreStates() {
+        if (isResetting) {
+            return;
+        }
+
+        Array.prototype.forEach.call(
+            getAdvancedFilterExpanders(),
+            restoreNativeShowMoreState
+        );
     }
 
     function setupItem(item) {
@@ -82,13 +177,7 @@
 
         toggle.setAttribute('aria-controls', childList.id);
 
-        if (
-            stateKey !== null &&
-            Object.prototype.hasOwnProperty.call(expandableState, stateKey)
-        ) {
-            restoreExpandableState(item);
-        }
-
+        restoreExpandableState(item);
         updateToggleState(item, toggle);
     }
 
@@ -105,7 +194,7 @@
                 ? target.closest('.mfn-opt-expandable-toggle')
                 : null;
 
-            if (!toggle) {
+            if (!toggle || isResetting) {
                 return;
             }
 
@@ -133,6 +222,98 @@
 
             updateToggleState(item, toggle);
         }, true);
+    }
+
+    function startResetTracking() {
+        document.addEventListener('click', function (event) {
+            var target = event.target;
+            var resetControl = target && target.closest
+                ? target.closest(
+                    '.mfn-active-filters .mfn-reset-filters, ' +
+                    '.mfn-advanced-filters .mfn-reset-filters, ' +
+                    '.mfn-advanced-filters-reset'
+                )
+                : null;
+
+            if (!resetControl) {
+                return;
+            }
+
+            /*
+             * Reset All belongs entirely to BeTheme.
+             * Clear our remembered states immediately and do not try to
+             * restore Show More or child-toggle state during the reset.
+             */
+            isResetting = true;
+            clearCustomState();
+
+            if (mutationTimer !== null) {
+                window.clearTimeout(mutationTimer);
+                mutationTimer = null;
+            }
+
+            /*
+             * Allow BeTheme's native click handler and AJAX reset to run.
+             * We deliberately do not preventDefault() or stopPropagation().
+             */
+            window.setTimeout(function () {
+                /*
+                 * If BeTheme does not emit mfn:ajax:refresh for this reset,
+                 * release the guard after its normal synchronous work.
+                 */
+                if (isResetting) {
+                    isResetting = false;
+                    initExpandableItems();
+                }
+            }, 1000);
+        }, true);
+    }
+
+    function startNativeShowMoreStateTracking() {
+        document.addEventListener('click', function (event) {
+            if (isResetting) {
+                return;
+            }
+
+            var target = event.target;
+            var expander = target && target.closest
+                ? target.closest('.mfn-advanced-filters .mfn-advanced-filters-expand')
+                : null;
+
+            if (!expander) {
+                return;
+            }
+
+            /*
+             * Let BeTheme handle Show More/Show Less first.
+             * We only remember the resulting state.
+             */
+            window.setTimeout(function () {
+                rememberNativeShowMoreState(expander);
+            }, 0);
+        }, false);
+
+        document.addEventListener('change', function (event) {
+            if (isResetting) {
+                return;
+            }
+
+            var target = event.target;
+
+            if (
+                !target ||
+                !target.closest ||
+                !target.closest('.mfn-advanced-filters')
+            ) {
+                return;
+            }
+
+            /*
+             * If the user checked a category while Show More was active,
+             * remember that expanded state before BeTheme refreshes the filter.
+             */
+            rememberAllNativeShowMoreStates();
+        }, false);
     }
 
     function hideSelectedAdvancedFilters() {
@@ -170,6 +351,10 @@
     }
 
     function initExpandableItems() {
+        if (isResetting) {
+            return;
+        }
+
         hideSelectedAdvancedFilters();
 
         Array.prototype.forEach.call(
@@ -178,16 +363,24 @@
         );
 
         setupAdvancedFilterParents();
+        restoreAllNativeShowMoreStates();
     }
 
     function scheduleInit() {
+        if (isResetting) {
+            return;
+        }
+
         if (mutationTimer !== null) {
             window.clearTimeout(mutationTimer);
         }
 
         mutationTimer = window.setTimeout(function () {
             mutationTimer = null;
-            initExpandableItems();
+
+            if (!isResetting) {
+                initExpandableItems();
+            }
         }, 50);
     }
 
@@ -200,6 +393,10 @@
     }
 
     function handleAdvancedFilterMutations(mutations) {
+        if (isResetting) {
+            return;
+        }
+
         var relevant = mutations.some(function (mutation) {
             if (nodeContainsAdvancedFilters(mutation.target)) {
                 return true;
@@ -221,10 +418,23 @@
 
     function start() {
         startExpandableToggleEvents();
+        startResetTracking();
+        startNativeShowMoreStateTracking();
         initExpandableItems();
 
         if (typeof window.jQuery !== 'undefined') {
             window.jQuery(document).on('mfn:ajax:refresh', function () {
+                /*
+                 * During Reset All, allow BeTheme to finish rebuilding the
+                 * filter first, then start fresh without restoring old state.
+                 */
+                if (isResetting) {
+                    isResetting = false;
+                    clearCustomState();
+                    window.setTimeout(initExpandableItems, 0);
+                    return;
+                }
+
                 window.setTimeout(initExpandableItems, 0);
             });
         }
