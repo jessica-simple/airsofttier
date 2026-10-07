@@ -8,6 +8,7 @@
     var nativeShowMoreState = Object.create(null);
     var mutationTimer = null;
     var toggleEventsInitialized = false;
+    var isResetting = false;
     var hiddenFilterLabels = {
         'best seller': true,
         'featured': true,
@@ -55,6 +56,11 @@
         return document.querySelectorAll('.mfn-advanced-filters .mfn-advanced-filters-expand');
     }
 
+    function clearCustomState() {
+        expandableState = Object.create(null);
+        nativeShowMoreState = Object.create(null);
+    }
+
     function updateToggleState(item, toggle) {
         var isOpen = item.classList.contains('is-open');
 
@@ -66,6 +72,7 @@
         var stateKey = getStateKey(item);
 
         if (
+            isResetting ||
             stateKey === null ||
             !Object.prototype.hasOwnProperty.call(expandableState, stateKey)
         ) {
@@ -76,6 +83,10 @@
     }
 
     function rememberNativeShowMoreState(expander) {
+        if (isResetting) {
+            return;
+        }
+
         var stateKey = getAdvancedFilterStateKey(expander);
 
         if (stateKey === null) {
@@ -86,6 +97,10 @@
     }
 
     function rememberAllNativeShowMoreStates() {
+        if (isResetting) {
+            return;
+        }
+
         Array.prototype.forEach.call(
             getAdvancedFilterExpanders(),
             rememberNativeShowMoreState
@@ -93,6 +108,10 @@
     }
 
     function restoreNativeShowMoreState(expander) {
+        if (isResetting) {
+            return;
+        }
+
         var stateKey = getAdvancedFilterStateKey(expander);
 
         if (
@@ -120,6 +139,10 @@
     }
 
     function restoreAllNativeShowMoreStates() {
+        if (isResetting) {
+            return;
+        }
+
         Array.prototype.forEach.call(
             getAdvancedFilterExpanders(),
             restoreNativeShowMoreState
@@ -154,13 +177,7 @@
 
         toggle.setAttribute('aria-controls', childList.id);
 
-        if (
-            stateKey !== null &&
-            Object.prototype.hasOwnProperty.call(expandableState, stateKey)
-        ) {
-            restoreExpandableState(item);
-        }
-
+        restoreExpandableState(item);
         updateToggleState(item, toggle);
     }
 
@@ -177,7 +194,7 @@
                 ? target.closest('.mfn-opt-expandable-toggle')
                 : null;
 
-            if (!toggle) {
+            if (!toggle || isResetting) {
                 return;
             }
 
@@ -207,8 +224,57 @@
         }, true);
     }
 
+    function startResetTracking() {
+        document.addEventListener('click', function (event) {
+            var target = event.target;
+            var resetControl = target && target.closest
+                ? target.closest(
+                    '.mfn-active-filters .mfn-reset-filters, ' +
+                    '.mfn-advanced-filters .mfn-reset-filters, ' +
+                    '.mfn-advanced-filters-reset'
+                )
+                : null;
+
+            if (!resetControl) {
+                return;
+            }
+
+            /*
+             * Reset All belongs entirely to BeTheme.
+             * Clear our remembered states immediately and do not try to
+             * restore Show More or child-toggle state during the reset.
+             */
+            isResetting = true;
+            clearCustomState();
+
+            if (mutationTimer !== null) {
+                window.clearTimeout(mutationTimer);
+                mutationTimer = null;
+            }
+
+            /*
+             * Allow BeTheme's native click handler and AJAX reset to run.
+             * We deliberately do not preventDefault() or stopPropagation().
+             */
+            window.setTimeout(function () {
+                /*
+                 * If BeTheme does not emit mfn:ajax:refresh for this reset,
+                 * release the guard after its normal synchronous work.
+                 */
+                if (isResetting) {
+                    isResetting = false;
+                    initExpandableItems();
+                }
+            }, 1000);
+        }, true);
+    }
+
     function startNativeShowMoreStateTracking() {
         document.addEventListener('click', function (event) {
+            if (isResetting) {
+                return;
+            }
+
             var target = event.target;
             var expander = target && target.closest
                 ? target.closest('.mfn-advanced-filters .mfn-advanced-filters-expand')
@@ -228,6 +294,10 @@
         }, false);
 
         document.addEventListener('change', function (event) {
+            if (isResetting) {
+                return;
+            }
+
             var target = event.target;
 
             if (
@@ -281,6 +351,10 @@
     }
 
     function initExpandableItems() {
+        if (isResetting) {
+            return;
+        }
+
         hideSelectedAdvancedFilters();
 
         Array.prototype.forEach.call(
@@ -289,18 +363,24 @@
         );
 
         setupAdvancedFilterParents();
-
         restoreAllNativeShowMoreStates();
     }
 
     function scheduleInit() {
+        if (isResetting) {
+            return;
+        }
+
         if (mutationTimer !== null) {
             window.clearTimeout(mutationTimer);
         }
 
         mutationTimer = window.setTimeout(function () {
             mutationTimer = null;
-            initExpandableItems();
+
+            if (!isResetting) {
+                initExpandableItems();
+            }
         }, 50);
     }
 
@@ -313,6 +393,10 @@
     }
 
     function handleAdvancedFilterMutations(mutations) {
+        if (isResetting) {
+            return;
+        }
+
         var relevant = mutations.some(function (mutation) {
             if (nodeContainsAdvancedFilters(mutation.target)) {
                 return true;
@@ -334,11 +418,23 @@
 
     function start() {
         startExpandableToggleEvents();
+        startResetTracking();
         startNativeShowMoreStateTracking();
         initExpandableItems();
 
         if (typeof window.jQuery !== 'undefined') {
             window.jQuery(document).on('mfn:ajax:refresh', function () {
+                /*
+                 * During Reset All, allow BeTheme to finish rebuilding the
+                 * filter first, then start fresh without restoring old state.
+                 */
+                if (isResetting) {
+                    isResetting = false;
+                    clearCustomState();
+                    window.setTimeout(initExpandableItems, 0);
+                    return;
+                }
+
                 window.setTimeout(initExpandableItems, 0);
             });
         }
