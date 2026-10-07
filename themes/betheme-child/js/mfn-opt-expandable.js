@@ -304,15 +304,17 @@
     }
 
     function collapseExpandableChildren() {
+        /*
+         * Show Less is a reset point for the custom child-category UI.
+         * Clear the entire remembered state first, otherwise a later
+         * AJAX refresh can restore a previously opened parent category.
+         */
+        expandableState = Object.create(null);
+
         Array.prototype.forEach.call(
             document.querySelectorAll(itemSelector),
             function (item) {
-                var stateKey = getStateKey(item);
                 item.classList.remove('is-open');
-
-                if (stateKey !== null) {
-                    expandableState[stateKey] = false;
-                }
 
                 var toggle = item.querySelector(':scope > .mfn-opt-expandable-toggle');
 
