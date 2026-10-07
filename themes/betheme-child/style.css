@@ -186,7 +186,16 @@ body .mfn-checkout-steps li.active .mfn-step-number{
     color: var(--primary) !important;
     border-bottom: 1px solid;
 }
+.menuLeft li#menu-item-14 ul li a {
+    --text-dark: #000000;
+    border: 0px;
+    color: var(--text-dark) !important;
+    transition: all 0.3s ease;
+}
 
+.menuLeft li#menu-item-14 ul li:hover a {
+    background: #8080801c;
+}
 /* footer */
 .column_footer_logo .logo-wrapper img {
     height: 50px !important;
@@ -1737,7 +1746,7 @@ tr.wc-block-cart-items__row:last-child:after {
     display: inline-flex;
     justify-content: center;
     margin-left: 6px;
-    padding: 2px 5px;
+    padding: 10px;
     vertical-align: middle;
 }
 
@@ -1791,4 +1800,11 @@ tr.wc-block-cart-items__row:last-child:after {
 .widget_product_categories ul.product-categories li.cat-item.li-expanded > .cat-expander {
     color: rgba(0, 0, 0, .8);
     transform: rotate(180deg);
+}
+
+.mfn-advanced-filters-options ul[id^="mfn-opt-expandable-list-"] li{
+    flex-wrap: nowrap;
+    line-height:120%;
+    margin-bottom: 10px;
+    
 }
