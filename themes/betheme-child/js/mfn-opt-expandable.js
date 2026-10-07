@@ -8,6 +8,8 @@
     var nativeShowMoreState = Object.create(null);
         initialVisibleCategoryState = Object.create(null);
     var initialVisibleCategoryState = Object.create(null);
+        initialVisibleCategoryState = Object.create(null);
+    var initialVisibleCategoryState = Object.create(null);
     var mutationTimer = null;
     var toggleEventsInitialized = false;
     var isResetting = false;
@@ -196,6 +198,129 @@
         initialOptions.forEach(function (option) {
             list.appendChild(option);
         });
+    }
+
+    function getAdvancedFilterOptions(expander) {
+        var wrapper = getAdvancedFilterWrapper(expander);
+        var list = wrapper
+            ? wrapper.querySelector('ul.mfn-advanced-filters-options') || wrapper.querySelector('ul')
+            : null;
+
+        return list
+            ? Array.prototype.filter.call(list.children, function (option) {
+                return option.matches('li');
+            })
+            : [];
+    }
+
+    function getCategoryStateKey(option) {
+        var checkbox = option.querySelector(':scope > input[type="checkbox"][name^="tax_"][value]');
+
+        if (!checkbox) {
+            checkbox = option.querySelector('input[type="checkbox"][name^="tax_"][value]');
+        }
+
+        return checkbox ? checkbox.name + ':' + checkbox.value : null;
+    }
+
+    function rememberInitialVisibleCategories(expander) {
+        var stateKey = getAdvancedFilterStateKey(expander);
+
+        if (
+            stateKey === null ||
+            Object.prototype.hasOwnProperty.call(initialVisibleCategoryState, stateKey)
+        ) {
+            return;
+        }
+
+        var visible = Object.create(null);
+
+        getAdvancedFilterOptions(expander).forEach(function (option) {
+            var key = getCategoryStateKey(option);
+
+            if (key !== null && !option.hidden && !option.classList.contains('mfn-opt-hidden')) {
+                visible[key] = true;
+            }
+        });
+
+        initialVisibleCategoryState[stateKey] = visible;
+    }
+
+    function rememberInitialVisibleCategoriesForAllFilters() {
+        Array.prototype.forEach.call(
+            getAdvancedFilterExpanders(),
+            rememberInitialVisibleCategories
+        );
+    }
+
+    function restoreInitialVisibleCategories(expander) {
+        var stateKey = getAdvancedFilterStateKey(expander);
+        var visible = stateKey !== null ? initialVisibleCategoryState[stateKey] : null;
+
+        if (!visible) {
+            return;
+        }
+
+        getAdvancedFilterOptions(expander).forEach(function (option) {
+            var key = getCategoryStateKey(option);
+
+            if (key === null) {
+                return;
+            }
+
+            var isInitial = Object.prototype.hasOwnProperty.call(visible, key);
+
+            option.hidden = !isInitial;
+            option.classList.toggle('mfn-opt-hidden', !isInitial);
+
+            if (isInitial) {
+                option.removeAttribute('aria-hidden');
+            } else {
+                option.setAttribute('aria-hidden', 'true');
+            }
+        });
+    }
+
+    function restoreInitialVisibleCategoryOrder(expander) {
+        var stateKey = getAdvancedFilterStateKey(expander);
+        var visible = stateKey !== null ? initialVisibleCategoryState[stateKey] : null;
+        var wrapper = getAdvancedFilterWrapper(expander);
+        var list = wrapper
+            ? wrapper.querySelector('ul.mfn-advanced-filters-options') || wrapper.querySelector('ul')
+            : null;
+
+        if (!visible || !list) {
+            return;
+        }
+
+        Array.prototype.filter.call(list.children, function (option) {
+            return option.matches('li');
+        }).filter(function (option) {
+            var key = getCategoryStateKey(option);
+            return key !== null && Object.prototype.hasOwnProperty.call(visible, key);
+        }).forEach(function (option) {
+            list.appendChild(option);
+        });
+    }
+
+    function collapseExpandableChildren() {
+        Array.prototype.forEach.call(
+            document.querySelectorAll(itemSelector),
+            function (item) {
+                var stateKey = getStateKey(item);
+                item.classList.remove('is-open');
+
+                if (stateKey !== null) {
+                    expandableState[stateKey] = false;
+                }
+
+                var toggle = item.querySelector(':scope > .mfn-opt-expandable-toggle');
+
+                if (toggle) {
+                    updateToggleState(item, toggle);
+                }
+            }
+        );
     }
 
     function rememberNativeShowMoreState(expander) {
@@ -567,7 +692,17 @@
                     return;
                 }
 
-                window.setTimeout(initExpandableItems, 0);
+                window.setTimeout(function () {
+                    initExpandableItems();
+
+                    Array.prototype.forEach.call(getAdvancedFilterExpanders(), function (expander) {
+                        if (!expander.classList.contains('mfn-expanded')) {
+                            restoreInitialVisibleCategories(expander);
+                            restoreInitialVisibleCategoryOrder(expander);
+                            collapseExpandableChildren();
+                        }
+                    });
+                }, 0);
             });
         }
 
