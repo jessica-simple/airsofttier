@@ -1772,7 +1772,16 @@ tr.wc-block-cart-items__row:last-child:after {
 .mfn-opt-expandable--has-children.is-open > .mfn-opt-expandable-toggle::after {
     transform: rotate(225deg) translate(-1px, -1px);
 }
+ul[id^="mfn-opt-expandable-list-"] li{
+    flex-wrap: nowrap;
+    line-height:120%;
+    margin-bottom: 10px;
+}
 
+ul[id^="mfn-opt-expandable-list-"] {
+    overflow-y: auto;
+    height: 300px;
+}
 /* Match BeTheme's WooCommerce block category toggles in the classic category widget. */
 .widget_product_categories ul.product-categories li.cat-item {
     padding-right: 30px;
