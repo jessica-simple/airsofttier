@@ -1,12 +1,16 @@
 (function () {
     'use strict';
 
-    var itemSelector = '.mfn-opt-expandable';
+    /*
+     * BeTheme uses .mfn-opt-expandable as its own Show More/Show Less
+     * bookkeeping class. Keep the custom child marker separate so native
+     * handlers never hide or unmark nested child items.
+     */
+    var itemSelector = '.mfn-opt-expandable--has-children';
     var childSelector = ':scope > ul, :scope > ol, :scope > .children, :scope > .mfn-opt-children, :scope > .mfn-opt-expandable-children';
     var expanderSelector = '.mfn-advanced-filters .mfn-advanced-filters-expand';
     var itemIndex = 0;
     var expandableState = Object.create(null);
-    var initialCategoryState = Object.create(null);
     var showMoreState = Object.create(null);
     var mutationTimer = null;
     var eventsInitialized = false;
@@ -53,11 +57,9 @@
     function getFilterList(expander) {
         var wrapper = getFilterWrapper(expander);
 
-        if (!wrapper) {
-            return null;
-        }
-
-        return wrapper.querySelector('ul.mfn-advanced-filters-options');
+        return wrapper
+            ? wrapper.querySelector('ul.mfn-advanced-filters-options')
+            : null;
     }
 
     function getFilterKey(expander) {
@@ -88,143 +90,10 @@
         });
     }
 
-    function getCategoryKey(option) {
-        var checkbox = option.querySelector(
-            ':scope > input[type="checkbox"][name^="tax_"][value]'
-        );
-
-        if (!checkbox) {
-            checkbox = option.querySelector(
-                'input[type="checkbox"][name^="tax_"][value]'
-            );
-        }
-
-        return checkbox ? checkbox.name + ':' + checkbox.value : null;
-    }
-
-    function captureInitialCategories(expander) {
-        var filterKey = getFilterKey(expander);
-
-        if (
-            filterKey === null ||
-            Object.prototype.hasOwnProperty.call(initialCategoryState, filterKey)
-        ) {
-            return;
-        }
-
-        var keys = [];
-        var options = getTopLevelOptions(expander);
-
-        options.forEach(function (option) {
-            var key = getCategoryKey(option);
-
-            if (
-                key !== null &&
-                !option.hidden &&
-                !option.classList.contains('mfn-opt-hidden')
-            ) {
-                keys.push(key);
-            }
-        });
-
-        initialCategoryState[filterKey] = keys;
-    }
-
-    function captureAllInitialCategories() {
-        Array.prototype.forEach.call(
-            document.querySelectorAll(expanderSelector),
-            captureInitialCategories
-        );
-    }
-
-    function restoreInitialCategories(expander) {
-        var filterKey = getFilterKey(expander);
-        var initialKeys = filterKey !== null
-            ? initialCategoryState[filterKey]
-            : null;
-        var list = getFilterList(expander);
-
-        if (!initialKeys || !list) {
-            return;
-        }
-
-        var initialSet = Object.create(null);
-
-        initialKeys.forEach(function (key) {
-            initialSet[key] = true;
-        });
-
-        var options = getTopLevelOptions(expander);
-
-        /*
-         * Only touch direct children of BeTheme's top-level filter list.
-         * Nested child <ul>s are never inspected or modified here.
-         */
-        options.forEach(function (option) {
-            var key = getCategoryKey(option);
-
-            if (key === null) {
-                return;
-            }
-
-            var shouldShow = !!initialSet[key];
-
-            option.classList.toggle('mfn-opt-hidden', !shouldShow);
-
-            if (shouldShow) {
-                option.hidden = false;
-                option.removeAttribute('aria-hidden');
-            } else {
-                option.hidden = true;
-                option.setAttribute('aria-hidden', 'true');
-            }
-        });
-
-        /*
-         * Restore only the original top-level order.
-         * Child <li> elements remain inside their original parent.
-         */
-        initialKeys.forEach(function (key) {
-            var option = options.find(function (candidate) {
-                return getCategoryKey(candidate) === key;
-            });
-
-            if (option) {
-                list.appendChild(option);
-            }
-        });
-    }
-
-    function collapseAllChildCategories() {
-        /*
-         * Show Less resets the custom nested UI completely.
-         * Do not preserve any child expansion state through this action.
-         */
-        expandableState = Object.create(null);
-
-        Array.prototype.forEach.call(
-            document.querySelectorAll(itemSelector),
-            function (item) {
-                item.classList.remove('is-open');
-
-                var toggle = item.querySelector(
-                    ':scope > .mfn-opt-expandable-toggle'
-                );
-
-                if (toggle) {
-                    updateToggleState(item, toggle);
-                }
-            }
-        );
-    }
-
     function updateToggleState(item, toggle) {
         var isOpen = item.classList.contains('is-open');
 
-        toggle.setAttribute(
-            'aria-expanded',
-            isOpen ? 'true' : 'false'
-        );
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         toggle.setAttribute(
             'aria-label',
             isOpen ? 'Hide options' : 'Show options'
@@ -266,22 +135,76 @@
             stateKey !== null &&
             Object.prototype.hasOwnProperty.call(expandableState, stateKey)
         ) {
-            item.classList.toggle(
-                'is-open',
-                expandableState[stateKey]
-            );
+            item.classList.toggle('is-open', expandableState[stateKey]);
         }
 
         updateToggleState(item, toggle);
+    }
+
+    function setupAdvancedFilterParents() {
+        Array.prototype.forEach.call(
+            document.querySelectorAll(
+                '.mfn-advanced-filters-label.mfn-advanced-filters-checkbox-label'
+            ),
+            function (label) {
+                var item = label.closest('li');
+
+                if (!item || !getChildList(item)) {
+                    return;
+                }
+
+                setupItem(item);
+            }
+        );
     }
 
     function rememberShowMoreState(expander) {
         var key = getFilterKey(expander);
 
         if (key !== null) {
-            showMoreState[key] =
-                expander.classList.contains('mfn-expanded');
+            showMoreState[key] = expander.classList.contains('mfn-expanded');
         }
+    }
+
+    /*
+     * BeTheme's native handler works on all descendants. On an AJAX refresh,
+     * only restore the direct top-level options, using the same class changes
+     * as BeTheme, so nested child options are never affected.
+     */
+    function syncNativeShowMoreState(expander, expanded) {
+        var options = getTopLevelOptions(expander);
+        var label = expanded
+            ? expander.getAttribute('data-less')
+            : expander.getAttribute('data-more');
+
+        expander.classList.toggle('mfn-expanded', expanded);
+
+        if (label !== null) {
+            expander.textContent = label;
+        }
+
+        options.forEach(function (option) {
+            if (expanded) {
+                if (!option.classList.contains('mfn-opt-hidden')) {
+                    return;
+                }
+
+                option.classList.remove('mfn-opt-hidden');
+                option.classList.add('mfn-opt-expandable');
+                option.hidden = false;
+                option.removeAttribute('aria-hidden');
+                return;
+            }
+
+            if (!option.classList.contains('mfn-opt-expandable')) {
+                return;
+            }
+
+            option.classList.add('mfn-opt-hidden');
+            option.classList.remove('mfn-opt-expandable');
+            option.hidden = true;
+            option.setAttribute('aria-hidden', 'true');
+        });
     }
 
     function restoreShowMoreState(expander) {
@@ -294,16 +217,7 @@
             return;
         }
 
-        var expanded = showMoreState[key];
-        var label = expanded
-            ? expander.getAttribute('data-less')
-            : expander.getAttribute('data-more');
-
-        expander.classList.toggle('mfn-expanded', expanded);
-
-        if (label !== null) {
-            expander.textContent = label;
-        }
+        syncNativeShowMoreState(expander, showMoreState[key]);
     }
 
     function rememberAllShowMoreStates() {
@@ -330,9 +244,7 @@
                     return;
                 }
 
-                var option =
-                    label.closest('.mfn-advanced-filters-checkbox') ||
-                    label;
+                var option = label.closest('li') || label;
 
                 option.hidden = true;
                 option.setAttribute('aria-hidden', 'true');
@@ -340,20 +252,21 @@
         );
     }
 
-    function setupAdvancedFilterParents() {
+    function collapseAllChildCategories() {
+        expandableState = Object.create(null);
+
         Array.prototype.forEach.call(
-            document.querySelectorAll(
-                '.mfn-advanced-filters-label.mfn-advanced-filters-checkbox-label'
-            ),
-            function (label) {
-                var item = label.closest('li');
+            document.querySelectorAll(itemSelector),
+            function (item) {
+                item.classList.remove('is-open');
 
-                if (!item || !getChildList(item)) {
-                    return;
+                var toggle = item.querySelector(
+                    ':scope > .mfn-opt-expandable-toggle'
+                );
+
+                if (toggle) {
+                    updateToggleState(item, toggle);
                 }
-
-                item.classList.add('mfn-opt-expandable');
-                setupItem(item);
             }
         );
     }
@@ -362,9 +275,6 @@
         if (resetting) {
             return;
         }
-
-        hideSelectedAdvancedFilters();
-        captureAllInitialCategories();
 
         Array.prototype.forEach.call(
             document.querySelectorAll(itemSelector),
@@ -377,6 +287,8 @@
             document.querySelectorAll(expanderSelector),
             restoreShowMoreState
         );
+
+        hideSelectedAdvancedFilters();
     }
 
     function scheduleInit() {
@@ -411,9 +323,6 @@
 
         eventsInitialized = true;
 
-        /*
-         * One delegated handler for custom child toggles.
-         */
         document.addEventListener('click', function (event) {
             var target = event.target;
             var toggle = target && target.closest
@@ -425,14 +334,9 @@
             }
 
             var item = toggle.closest(itemSelector);
+            var childList = item ? getChildList(item) : null;
 
-            if (!item) {
-                return;
-            }
-
-            var childList = getChildList(item);
-
-            if (!childList) {
+            if (!item || !childList) {
                 return;
             }
 
@@ -449,9 +353,7 @@
             updateToggleState(item, toggle);
         }, true);
 
-        /*
-         * Let BeTheme own Show More/Show Less.
-         */
+        /* Let BeTheme own Show More/Show Less, then reset only child state. */
         document.addEventListener('click', function (event) {
             if (resetting) {
                 return;
@@ -466,26 +368,16 @@
             }
 
             window.setTimeout(function () {
-                var expanded =
-                    expander.classList.contains('mfn-expanded');
+                var expanded = expander.classList.contains('mfn-expanded');
 
                 rememberShowMoreState(expander);
 
                 if (!expanded) {
-                    /*
-                     * This is the critical boundary:
-                     * Show Less restores ONLY top-level categories and
-                     * resets ALL custom child expansion.
-                     */
-                    restoreInitialCategories(expander);
                     collapseAllChildCategories();
                 }
             }, 0);
         }, false);
 
-        /*
-         * Preserve See More after a category checkbox triggers AJAX.
-         */
         document.addEventListener('change', function (event) {
             if (resetting) {
                 return;
@@ -502,9 +394,7 @@
             }
         }, false);
 
-        /*
-         * Reset All: never interfere with BeTheme's native handler.
-         */
+        /* Do not prevent BeTheme's native Reset All handler. */
         document.addEventListener('click', function (event) {
             var target = event.target;
             var resetControl = target && target.closest
@@ -522,6 +412,7 @@
             resetting = true;
             expandableState = Object.create(null);
             showMoreState = Object.create(null);
+            collapseAllChildCategories();
 
             if (mutationTimer !== null) {
                 window.clearTimeout(mutationTimer);
