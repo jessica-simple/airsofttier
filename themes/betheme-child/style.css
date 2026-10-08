@@ -1802,7 +1802,7 @@ tr.wc-block-cart-items__row:last-child:after {
     transform: rotate(180deg);
 }
 
-.mfn-advanced-filters-options ul[id^="mfn-opt-expandable-list-"] li{
+.mfn-advanced-filters-options .mfn-opt-expandable-list li{
     flex-wrap: nowrap;
     line-height:120%;
     margin-bottom: 10px;

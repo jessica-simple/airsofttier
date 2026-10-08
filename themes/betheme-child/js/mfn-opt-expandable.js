@@ -7,7 +7,7 @@
      * handlers never hide or unmark nested child items.
      */
     var itemSelector = '.mfn-opt-expandable--has-children';
-    var childSelector = ':scope > ul, :scope > ol, :scope > .children, :scope > .mfn-opt-children, :scope > .mfn-opt-expandable-children';
+
     var expanderSelector = '.mfn-advanced-filters .mfn-advanced-filters-expand';
     var itemIndex = 0;
     var expandableState = Object.create(null);
@@ -24,15 +24,47 @@
     };
 
     function getChildList(item) {
-        try {
-            return item.querySelector(childSelector);
-        } catch (error) {
-            return Array.prototype.find.call(item.children, function (child) {
-                return child.matches(
-                    'ul, ol, .children, .mfn-opt-children, .mfn-opt-expandable-children'
-                );
-            }) || null;
+        return Array.prototype.find.call(item.children, function (child) {
+            return child.matches(
+                'ul, ol, .children, .mfn-opt-children, .mfn-opt-expandable-children'
+            );
+        }) || null;
+    }
+
+    function getDirectToggle(item) {
+        return Array.prototype.find.call(item.children, function (child) {
+            return child.matches('.mfn-opt-expandable-toggle');
+        }) || null;
+    }
+
+    function ensureChildListId(childList) {
+        var id = childList.id;
+
+        if (!id || document.getElementById(id) !== childList) {
+            do {
+                itemIndex += 1;
+                id = 'mfn-opt-expandable-list-' + itemIndex;
+            } while (document.getElementById(id));
+
+            childList.id = id;
         }
+
+        childList.classList.add('mfn-opt-expandable-list');
+
+        return childList;
+    }
+
+    function getToggleTarget(toggle, item) {
+        var controlsId = toggle.getAttribute('aria-controls');
+        var childList = controlsId
+            ? document.getElementById(controlsId)
+            : null;
+
+        if (childList && childList.parentElement === item) {
+            return childList;
+        }
+
+        return getChildList(item);
     }
 
     function getStateKey(item) {
@@ -108,9 +140,7 @@
         }
 
         var stateKey = getStateKey(item);
-        var toggle = item.querySelector(
-            ':scope > .mfn-opt-expandable-toggle'
-        );
+        var toggle = getDirectToggle(item);
 
         item.classList.add('mfn-opt-expandable--has-children');
         item.setAttribute('data-mfn-expandable-ready', 'true');
@@ -123,11 +153,7 @@
             item.insertBefore(toggle, childList);
         }
 
-        if (!childList.id) {
-            itemIndex += 1;
-            childList.id = 'mfn-opt-expandable-list-' + itemIndex;
-        }
-
+        ensureChildListId(childList);
         toggle.setAttribute('aria-controls', childList.id);
 
         if (
@@ -260,9 +286,7 @@
             function (item) {
                 item.classList.remove('is-open');
 
-                var toggle = item.querySelector(
-                    ':scope > .mfn-opt-expandable-toggle'
-                );
+                var toggle = getDirectToggle(item);
 
                 if (toggle) {
                     updateToggleState(item, toggle);
@@ -334,7 +358,7 @@
             }
 
             var item = toggle.closest(itemSelector);
-            var childList = item ? getChildList(item) : null;
+            var childList = item ? getToggleTarget(toggle, item) : null;
 
             if (!item || !childList) {
                 return;
@@ -344,7 +368,8 @@
             event.stopPropagation();
 
             var key = getStateKey(item);
-            var isOpen = item.classList.toggle('is-open');
+            var isOpen = !item.classList.contains('is-open');
+            item.classList.toggle('is-open', isOpen);
 
             if (key !== null) {
                 expandableState[key] = isOpen;
