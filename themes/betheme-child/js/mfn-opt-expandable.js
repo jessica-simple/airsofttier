@@ -131,6 +131,33 @@
             isOpen ? 'Hide options' : 'Show options'
         );
     }
+    function closeOtherExpandableItems(currentItem) {
+        Array.prototype.forEach.call(
+            document.querySelectorAll(itemSelector),
+            function (item) {
+                if (
+                    item === currentItem ||
+                    !item.classList.contains('is-open')
+                ) {
+                    return;
+                }
+
+                item.classList.remove('is-open');
+
+                var key = getStateKey(item);
+
+                if (key !== null) {
+                    expandableState[key] = false;
+                }
+
+                var toggle = getDirectToggle(item);
+
+                if (toggle) {
+                    updateToggleState(item, toggle);
+                }
+            }
+        );
+    }
 
     function setupItem(item) {
         var childList = getChildList(item);
@@ -369,6 +396,11 @@
 
             var key = getStateKey(item);
             var isOpen = !item.classList.contains('is-open');
+
+            if (isOpen) {
+                closeOtherExpandableItems(item);
+            }
+
             item.classList.toggle('is-open', isOpen);
 
             if (key !== null) {
