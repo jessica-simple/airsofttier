@@ -52,12 +52,16 @@ body .mfn-checkout-steps li.active .mfn-step-number{
     padding-bottom: 15px;
 }
 
-.search_wrapper .form-searchform {
+.search_wrapper .form-searchform,
+form.custom-woocommerce-search,
+.custom-woocommerce-search form {
     display: flex;
     align-items: center;
 }
 
-.search_wrapper .field {
+.search_wrapper .field,
+.custom-woocommerce-search input[type="search"],
+.custom-woocommerce-search input[type="text"] {
     flex: 1;
     padding: 10px;
     background: var(--white);
@@ -68,7 +72,9 @@ body .mfn-checkout-steps li.active .mfn-step-number{
 }
 
 /* show the hidden submit */
-.search_wrapper input[type="submit"] {
+.search_wrapper input[type="submit"],
+.custom-woocommerce-search input[type="submit"],
+.custom-woocommerce-search button[type="submit"] {
     --buttonHeight: 42px;
     display: block !important;
     width: var(--buttonHeight);
@@ -85,7 +91,33 @@ body .mfn-checkout-steps li.active .mfn-step-number{
 }
 
 /* hide default icon if needed */
-.search_wrapper .icon_search {
+.search_wrapper .icon_search,
+.custom-woocommerce-search .icon_search {
+    display: none;
+}
+
+.custom-woocommerce-search input[type="search"],
+.custom-woocommerce-search input[type="text"] {
+    min-width: 0;
+    width: 100%;
+    height: 42px;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.custom-woocommerce-search input[type="submit"],
+.custom-woocommerce-search button[type="submit"] {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    font-size: 0;
+}
+
+.custom-woocommerce-search button[type="submit"]::before,
+.custom-woocommerce-search button[type="submit"]::after {
     display: none;
 }
 
