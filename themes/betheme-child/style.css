@@ -52,16 +52,12 @@ body .mfn-checkout-steps li.active .mfn-step-number{
     padding-bottom: 15px;
 }
 
-.search_wrapper .form-searchform,
-form.custom-woocommerce-search,
-.custom-woocommerce-search form {
+.search_wrapper .form-searchform {
     display: flex;
     align-items: center;
 }
 
-.search_wrapper .field,
-.custom-woocommerce-search input[type="search"],
-.custom-woocommerce-search input[type="text"] {
+.search_wrapper .field {
     flex: 1;
     padding: 10px;
     background: var(--white);
@@ -72,9 +68,7 @@ form.custom-woocommerce-search,
 }
 
 /* show the hidden submit */
-.search_wrapper input[type="submit"],
-.custom-woocommerce-search input[type="submit"],
-.custom-woocommerce-search button[type="submit"] {
+.search_wrapper input[type="submit"] {
     --buttonHeight: 42px;
     display: block !important;
     width: var(--buttonHeight);
@@ -91,33 +85,7 @@ form.custom-woocommerce-search,
 }
 
 /* hide default icon if needed */
-.search_wrapper .icon_search,
-.custom-woocommerce-search .icon_search {
-    display: none;
-}
-
-.custom-woocommerce-search input[type="search"],
-.custom-woocommerce-search input[type="text"] {
-    min-width: 0;
-    width: 100%;
-    height: 42px;
-    margin: 0;
-    box-sizing: border-box;
-}
-
-.custom-woocommerce-search input[type="submit"],
-.custom-woocommerce-search button[type="submit"] {
-    flex-shrink: 0;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-    font-size: 0;
-}
-
-.custom-woocommerce-search button[type="submit"]::before,
-.custom-woocommerce-search button[type="submit"]::after {
+.search_wrapper .icon_search {
     display: none;
 }
 
@@ -1856,4 +1824,127 @@ ul[id^="mfn-opt-expandable-list-"] {
     line-height:120%;
     margin-bottom: 10px;
     
+}
+
+/* Checkout follows the cart's cards, spacing and primary action. */
+body.woocommerce-checkout:not(.woocommerce-order-received) #Content,
+.mfn-be-checkout {
+    background: #eaebef;
+}
+.wp-block-woocommerce-checkout {
+    padding: 40px 0;
+    margin-bottom: 0;
+}
+.wp-block-woocommerce-checkout .wc-block-components-sidebar-layout {
+    gap: 40px;
+}
+.wp-block-woocommerce-checkout .wc-block-checkout__main {
+    flex: 1;
+    min-width: 0;
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px;
+}
+.wp-block-woocommerce-checkout .wc-block-checkout__sidebar {
+    width: 420px;
+    flex-shrink: 0;
+    padding: 0;
+    position: sticky;
+    top: 30px;
+}
+.wp-block-woocommerce-checkout-order-summary-block,
+.woocommerce-checkout form.checkout #order_review {
+    background: #fff;
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.05);
+}
+.wp-block-woocommerce-checkout .wc-block-components-checkout-step__title,
+.woocommerce-checkout form.checkout h3 {
+    font-weight: 800;
+}
+.wp-block-woocommerce-checkout .wc-block-components-checkout-step__title::after,
+.woocommerce-checkout form.checkout h3::after {
+    content: "";
+    display: block;
+    width: 70px;
+    height: 3px;
+    background: var(--primary);
+    margin-top: 12px;
+}
+.wp-block-woocommerce-checkout .wc-block-components-text-input input,
+.wp-block-woocommerce-checkout .wc-block-components-combobox-control input,
+.wp-block-woocommerce-checkout .wc-block-components-textarea,
+.wp-block-woocommerce-checkout .wc-block-components-select .wc-block-components-select__container,
+.woocommerce-checkout form.checkout .input-text,
+.woocommerce-checkout form.checkout select {
+    border-radius: 12px;
+    border-color: var(--lightCardBorder);
+    background-color: #fff;
+}
+.wp-block-woocommerce-checkout .wc-block-components-text-input input:focus,
+.woocommerce-checkout form.checkout .input-text:focus {
+    border-color: var(--primary);
+}
+.wp-block-woocommerce-checkout .wc-block-components-panel__button {
+    padding: 14px;
+}
+.wp-block-woocommerce-checkout .wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option {
+    background: #fafafa;
+}
+.wp-block-woocommerce-checkout .wc-block-components-checkout-place-order-button,
+.woocommerce-checkout #payment #place_order {
+    background: var(--primary) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 14px !important;
+    min-height: 60px;
+    font-size: 18px;
+    font-weight: 700;
+}
+.wp-block-woocommerce-checkout .wc-block-components-checkout-place-order-button:hover,
+.woocommerce-checkout #payment #place_order:hover {
+    background: var(--primary-dark) !important;
+}
+.woocommerce-checkout form.checkout #customer_details {
+    background: #fff;
+    border-radius: 20px;
+    padding: 30px;
+    box-sizing: border-box;
+    margin-bottom: 30px;
+}
+.woocommerce-checkout .cart-trust-bar {
+    margin-top: 30px;
+}
+@media (max-width: 1100px) {
+    .wp-block-woocommerce-checkout .wc-block-components-sidebar-layout {
+        gap: 24px;
+    }
+    .wp-block-woocommerce-checkout .wc-block-checkout__sidebar {
+        width: 35%;
+    }
+}
+@media (max-width: 781px) {
+    .wp-block-woocommerce-checkout {
+        padding: 24px 0;
+    }
+    .wp-block-woocommerce-checkout .wc-block-components-sidebar-layout {
+        flex-direction: column;
+    }
+    .wp-block-woocommerce-checkout .wc-block-checkout__main,
+    .wp-block-woocommerce-checkout .wc-block-checkout__sidebar {
+        width: 100%;
+        box-sizing: border-box;
+        flex-basis: auto;
+    }
+    .wp-block-woocommerce-checkout .wc-block-checkout__sidebar {
+        position: static;
+    }
+    .wp-block-woocommerce-checkout .wc-block-checkout__main,
+    .wp-block-woocommerce-checkout-order-summary-block,
+    .woocommerce-checkout form.checkout #customer_details,
+    .woocommerce-checkout form.checkout #order_review {
+        padding: 20px;
+        border-radius: 16px;
+    }
 }

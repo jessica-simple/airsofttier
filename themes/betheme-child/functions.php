@@ -62,7 +62,26 @@ add_action('init', function () {
     add_shortcode('wc_brands_list', 'mfn_child_woocommerce_brands_list_shortcode');
     add_shortcode('betheme_social_icons', 'mfn_child_betheme_social_icons_shortcode');
     add_shortcode('mfn_social_icons', 'mfn_child_betheme_social_icons_shortcode');
+    add_shortcode('woocommerce_search', 'mfn_child_woocommerce_search_shortcode');
 });
+/**
+ * Display a WooCommerce product search form.
+ *
+ * Usage:
+ * [woocommerce_search]
+ */
+function mfn_child_woocommerce_search_shortcode() {
+    if ( ! class_exists( 'WooCommerce' ) ) {
+        return '';
+    }
+
+    return '<form class="custom-woocommerce-search" role="search" method="get" action="' . esc_url(home_url('/')) . '">' .
+        '<input type="search" name="s" class="custom-woocommerce-search__input" placeholder="' . esc_attr__('Search guns, gear, accessories...', 'betheme-child') . '" value="' . esc_attr(get_search_query()) . '">' .
+        '<button type="submit" class="custom-woocommerce-search__button" aria-label="' . esc_attr__('Search products', 'betheme-child') . '">' .
+        '</button>' .
+        '<input type="hidden" name="post_type" value="product">' .
+        '</form>';
+}
 
 /**
  * Display the BeTheme social icon list from Theme Options.
