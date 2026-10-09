@@ -1980,3 +1980,121 @@ body.woocommerce-checkout:not(.woocommerce-order-received) #Content,
         border-radius: 16px;
     }
 }
+/* Cart design for /checkout/order-received/ and BeTheme thank-you content. */
+body.woocommerce-order-received #Content,
+.mfn-be-thankyou { background: #eaebef; }
+:is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-order { padding: 40px 0; }
+:is(body.woocommerce-order-received, .mfn-be-thankyou) :is(.woocommerce-thankyou-order-received, ul.woocommerce-order-overview, .woocommerce-order-details, .woocommerce-customer-details, .woocommerce-order-downloads) {
+    background: #fff;
+    border: 0;
+    border-radius: 24px;
+    padding: 30px;
+    margin: 0 0 30px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.05);
+    box-sizing: border-box;
+}
+:is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-thankyou-order-received {
+    border-left: 4px solid var(--primary);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+:is(body.woocommerce-order-received, .mfn-be-thankyou) ul.woocommerce-order-overview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    list-style: none;
+}
+:is(body.woocommerce-order-received, .mfn-be-thankyou) ul.woocommerce-order-overview::before,
+:is(body.woocommerce-order-received, .mfn-be-thankyou) ul.woocommerce-order-overview::after { display: none; }
+:is(body.woocommerce-order-received, .mfn-be-thankyou) ul.woocommerce-order-overview li {
+    float: none;
+    flex: 1 1 150px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+:is(body.woocommerce-order-received, .mfn-be-thankyou) ul.woocommerce-order-overview li strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--darkText);
+    text-transform: none;
+}
+:is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-order h2 {
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 25px;
+    text-align:left;
+}
+:is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-order h2::after {
+    content: "";
+    display: block;
+    width: 70px;
+    height: 3px;
+    background: var(--primary);
+    margin-top: 12px;
+}
+:is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-order table.shop_table {
+    border: 0;
+    border-collapse: collapse;
+    margin-bottom: 0;
+    width: 100%;
+}
+:is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-order table.shop_table :is(th, td) {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--lightCardBorder);
+    padding: 18px 12px;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+:is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-order table.shop_table :is(th, td):last-child { text-align: right; }
+:is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-order table.shop_table tfoot tr:last-child > * { border-bottom: 0; }
+:is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-order .product-name a {
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 700;
+    text-decoration: none;
+}
+:is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-customer-details address {
+    border: 1px solid var(--lightCardBorder);
+    border-radius: 14px;
+    padding: 24px 20px 24px 60px;
+    background: #fafafa;
+    box-sizing: border-box;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+:is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-order a.button {
+    background: var(--primary);
+    color: #fff;
+    border: 0;
+    border-radius: 14px;
+    padding: 16px 24px;
+    font-weight: 700;
+    white-space: normal;
+}
+:is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-order a.button:hover { background: var(--primary-dark, #701817); color: #fff; }
+@media (max-width: 767px) {
+    :is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-order { padding: 24px 0; }
+    :is(body.woocommerce-order-received, .mfn-be-thankyou) :is(.woocommerce-thankyou-order-received, ul.woocommerce-order-overview, .woocommerce-order-details, .woocommerce-customer-details, .woocommerce-order-downloads) {
+        padding: 20px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+    }
+    :is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-order h2 { font-size: 24px; }
+    :is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-customer-details :is(.col-1, .col-2) { float: none; width: 100%; }
+    :is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-customer-details .col-2 { margin-top: 24px; }
+    :is(body.woocommerce-order-received, .mfn-be-thankyou) .woocommerce-order table.shop_table :is(th, td) { padding: 14px 6px; }
+}
+
+.woocommerce .woocommerce-customer-details address:before, .woocommerce .addresses address:before{
+    align-items: start;
+    padding-top: 14px;
+}
