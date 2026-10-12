@@ -29,6 +29,19 @@ add_action('wp_enqueue_scripts', function () {
     );
 }, 100);
 
+// get_theme_file_uri() otherwise resolves BeTheme's WooCommerce bundle to our
+// category-only js/woocommerce.js. Keep the native cart/product behavior loaded.
+add_filter('script_loader_src', function ($src, $handle) {
+    if ('mfn-woojs' === $handle) {
+        return str_replace(
+            get_stylesheet_directory_uri() . '/js/',
+            get_template_directory_uri() . '/js/',
+            $src
+        );
+    }
+    return $src;
+}, 10, 2);
+
 add_action('wp_enqueue_scripts', function () {
     if (! wp_script_is('mfn-woojs', 'enqueued')) {
         return;
