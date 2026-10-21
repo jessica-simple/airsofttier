@@ -40,6 +40,10 @@ class WC_Group_Buy_Tiers
 		// Fresh timer data for cached product pages/shortcodes.
 		add_action('wp_ajax_gb_timer_data', array($this, 'ajax_timer_data'));
 		add_action('wp_ajax_nopriv_gb_timer_data', array($this, 'ajax_timer_data'));
+
+		// Cart item deal metadata and markup.
+		add_action('woocommerce_after_cart_item_name', array($this, 'render_cart_item_deal'), 10, 2);
+		add_action('woocommerce_blocks_loaded', array($this, 'register_store_api_extension'));
 	}
 
 	/**
@@ -186,6 +190,118 @@ class WC_Group_Buy_Tiers
 			'server_ts' => time(),
 			'products' => $data,
 		));
+	}
+
+	/**
+	 * Add group-buy data to cart items returned by the WooCommerce Store API.
+	 * This is consumed by the Cart block's itemName filter.
+	 */
+	public function register_store_api_extension()
+	{
+		if (!function_exists('woocommerce_store_api_register_endpoint_data')) {
+			return;
+		}
+
+		woocommerce_store_api_register_endpoint_data(array(
+			'endpoint' => 'cart-item',
+			'namespace' => 'gb-deal',
+			'schema_callback' => function () {
+				return array(
+					'enabled' => array(
+						'description' => __('Whether this cart item is a group-buy deal.', 'woocommerce'),
+						'type' => 'boolean',
+					),
+					'expiry' => array(
+						'description' => __('Group-buy expiry date.', 'woocommerce'),
+						'type' => 'string',
+					),
+					'expiry_ts' => array(
+						'description' => __('Group-buy expiry timestamp.', 'woocommerce'),
+						'type' => 'integer',
+					),
+				);
+			},
+			'data_callback' => function ($cart_item) {
+				$product_id = isset($cart_item['product_id']) ? absint($cart_item['product_id']) : 0;
+				return $this->get_cart_deal_data($product_id);
+			},
+		));
+
+		$script_path = plugin_dir_path(__FILE__) . 'assets/js/cart-deal.js';
+		wp_enqueue_script(
+			'gb-cart-deal',
+			plugin_dir_url(__FILE__) . 'assets/js/cart-deal.js',
+			array(),
+			file_exists($script_path) ? filemtime($script_path) : '1.0.0',
+			true
+		);
+	}
+
+	/**
+	 * Render deal information for the classic WooCommerce cart template.
+	 */
+	public function render_cart_item_deal($cart_item, $cart_item_key)
+	{
+		if (!function_exists('is_cart') || !is_cart()) {
+			return;
+		}
+
+		$product_id = isset($cart_item['product_id']) ? absint($cart_item['product_id']) : 0;
+		$data = $this->get_cart_deal_data($product_id);
+		if (empty($data['enabled'])) {
+			return;
+		}
+
+		echo $this->get_cart_deal_html($data, $product_id);
+	}
+
+	/**
+	 * Return the deal data needed by both classic and block carts.
+	 */
+	private function get_cart_deal_data($product_id)
+	{
+		$product_id = absint($product_id);
+		if (!$product_id || 'yes' !== get_post_meta($product_id, '_gb_enabled', true)) {
+			return array(
+				'enabled' => false,
+				'expiry' => '',
+				'expiry_ts' => 0,
+			);
+		}
+
+		$expiry = get_post_meta($product_id, '_gb_expiry', true);
+		$expiry_ts = $this->get_expiry_timestamp($expiry);
+
+		if ($expiry_ts && $expiry_ts < time()) {
+			return array(
+				'enabled' => false,
+				'expiry' => '',
+				'expiry_ts' => 0,
+			);
+		}
+
+		return array(
+			'enabled' => true,
+			'expiry' => (string) $expiry,
+			'expiry_ts' => (int) $expiry_ts,
+		);
+	}
+
+	private function get_cart_deal_html($data, $product_id = 0)
+	{
+		if (empty($data['enabled'])) {
+			return '';
+		}
+
+		ob_start();
+		echo '<div class="gb-cart-deal" data-product-id="' . esc_attr(absint($product_id)) . '">';
+		echo '<span class="gb-cart-deal-badge">' . esc_html__('LIMITED DEALS', 'woocommerce') . '</span>';
+		if (!empty($data['expiry'])) {
+			$this->render_timer_html($data['expiry'], true, $product_id);
+		}
+		echo '</div>';
+
+		return ob_get_clean();
 	}
 
 	private function purge_group_buy_cache($post_id)
@@ -924,30 +1040,35 @@ class WC_Group_Buy_Tiers
 
 		ob_start();
 		echo '<div class="gb-info-box" data-product-id="' . esc_attr($product_id) . '">';
+		echo '<div class="gb-info-header">';
+		echo '<span class="gb-info-eyebrow">' . esc_html__('Group buy deal', 'woocommerce') . '</span>';
+
+		$discount_pc = $this->get_discount_percentage($product);
+		if ($discount_pc > 0) {
+			echo '<span class="gb-discount-badge">' . sprintf(esc_html__('Up to %d%% off', 'woocommerce'), $discount_pc) . '</span>';
+		}
+		echo '</div>';
 
 		if ($expiry) {
 			echo '<div class="gb-deal-timer-wrapper">';
-			echo '<strong>' . __('Offer Ends In:', 'woocommerce') . '</strong>';
+			echo '<strong>' . esc_html__('Offer ends in', 'woocommerce') . '</strong>';
 			$this->render_timer_html($expiry, false, $product_id);
 			echo '</div>';
 		}
 
-		$discount_pc = $this->get_discount_percentage($product);
-		if ($discount_pc > 0) {
-			echo '<div class="gb-discount-badge">-' . $discount_pc . '%</div>';
-		}
-
-		echo '<div class="gb-sales-info">';
-		echo '<p>' . sprintf(__('🔥 <strong>%d</strong> items have already been sold!', 'woocommerce'), $sales_count) . '</p>';
-		echo '</div>';
+		// echo '<div class="gb-sales-info">';
+		// echo '<p>' . sprintf(__('<strong>%d</strong> items have already been sold!', 'woocommerce'), $sales_count) . '</p>';
+		// echo '</div>';
 
 		// Next tier hint & Progress Bar
-		$this->render_tier_progress($product, $sales_count);
+		// $this->render_tier_progress($product, $sales_count);
 
-		echo '<div style="margin-top:25px;">';
-		echo '<p style="font-size:0.9em; font-weight:600; color:#666; margin-bottom:8px;">' . __('⏳ Time Progress', 'woocommerce') . '</p>';
-		$this->render_time_progress($product, $expiry);
-		echo '</div>';
+		if ($expiry) {
+			echo '<div class="gb-info-progress">';
+			echo '<p class="gb-info-progress-label">' . esc_html__('Time elapsed', 'woocommerce') . '</p>';
+			$this->render_time_progress($product, $expiry);
+			echo '</div>';
+		}
 
 		echo '</div>';
 		return ob_get_clean();
@@ -1062,7 +1183,41 @@ class WC_Group_Buy_Tiers
 	 */
 	public function enqueue_assets()
 	{
-		wp_enqueue_style('gb-tiers-style', plugin_dir_url(__FILE__) . 'assets/css/style.css', array(), '1.0.0');
+		$style_path = plugin_dir_path(__FILE__) . 'assets/css/style.css';
+		$style_version = file_exists($style_path) ? filemtime($style_path) : '1.0.0';
+		wp_enqueue_style('gb-tiers-style', plugin_dir_url(__FILE__) . 'assets/css/style.css', array(), $style_version);
+
+		if (function_exists('is_cart') && is_cart()) {
+			$script_path = plugin_dir_path(__FILE__) . 'assets/js/cart-deal.js';
+			wp_enqueue_script(
+				'gb-cart-deal',
+				plugin_dir_url(__FILE__) . 'assets/js/cart-deal.js',
+				array(),
+				file_exists($script_path) ? filemtime($script_path) : '1.0.0',
+				true
+			);
+
+			$cart_deals = array();
+			if (function_exists('WC') && WC()->cart) {
+				foreach (WC()->cart->get_cart() as $cart_item) {
+					$product_id = isset($cart_item['product_id']) ? absint($cart_item['product_id']) : 0;
+					$data = $this->get_cart_deal_data($product_id);
+					$cart_deals[] = array(
+						'enabled' => !empty($data['enabled']),
+						'product_id' => $product_id,
+						'expiry' => (string) $data['expiry'],
+						'expiry_ts' => (int) $data['expiry_ts'],
+					);
+				}
+			}
+
+			wp_add_inline_script(
+				'gb-cart-deal',
+				'window.gbCartDeals = ' . wp_json_encode($cart_deals) . ';',
+				'before'
+			);
+		}
+
 		add_action('wp_footer', array($this, 'output_js'));
 	}
 
@@ -1094,9 +1249,8 @@ class WC_Group_Buy_Tiers
 		?>
 		<script>
 			(function () {
-				document.addEventListener('DOMContentLoaded', function () {
-					const timers = document.querySelectorAll('.gb-timer');
-					if (timers.length === 0) return;
+					document.addEventListener('DOMContentLoaded', function () {
+						const getTimers = () => document.querySelectorAll('.gb-timer');
 
 					let serverLoadedAt = <?php echo esc_js(time() * 1000); ?>;
 					let browserLoadedAt = Date.now();
@@ -1179,7 +1333,8 @@ class WC_Group_Buy_Tiers
 						});
 					};
 
-					const updateTimers = () => {
+						const updateTimers = () => {
+							const timers = getTimers();
 						const now = serverLoadedAt + (Date.now() - browserLoadedAt);
 						updateLocalDateLabels(now);
 
@@ -1238,7 +1393,8 @@ class WC_Group_Buy_Tiers
 						});
 					};
 
-					const refreshTimerData = () => {
+						const refreshTimerData = () => {
+							const timers = getTimers();
 						const productIds = Array.from(timers)
 							.map(timer => {
 								const productBox = timer.closest('[data-product-id]');
@@ -1293,6 +1449,7 @@ class WC_Group_Buy_Tiers
 						updateTimers();
 						revealCheckedDealLists();
 						setInterval(updateTimers, 1000);
+						setInterval(refreshTimerData, 60000);
 					});
 				});
 			})();

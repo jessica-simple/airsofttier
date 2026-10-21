@@ -29,18 +29,18 @@
 }
 
 .wishlist-count {
-    background: #fff5f5;
-    color: #dc2626;
+    background: var(--primaryLight);
+    color: var(--primary);
     padding: 12px 22px;
     border-radius: 12px;
     font-weight: 600;
-    border: 1px solid #ffd6d6;
+    border: 1px solid var(--primaryLightBorder);
     font-size: 15px;
     transition: all 0.3s ease;
 }
 
 .wishlist-count:hover {
-    background: #ffebeb;
+    background: var(--primaryLightHover);
 }
 
 /* Wishlist Cards Container */
@@ -90,8 +90,8 @@
 
 .product-tag {
     display: inline-block;
-    background: #fff1f1;
-    color: #dc2626;
+    background: var(--primaryLight);
+    color: var(--primary);
     padding: 6px 14px;
     border-radius: 30px;
     font-size: 13px;
@@ -117,11 +117,11 @@
 }
 
 .stock-status.in-stock {
-    color: #16a34a;
+    color: var(--success);
 }
 
 .stock-status.out-of-stock {
-    color: #dc2626;
+    color: var(--primary);
 }
 
 .stock-status .dot {
@@ -131,11 +131,11 @@
 }
 
 .stock-status.in-stock .dot {
-    background: #16a34a;
+    background: var(--success);
 }
 
 .stock-status.out-of-stock .dot {
-    background: #dc2626;
+    background: var(--primary);
 }
 
 .product-price .woocommerce-Price-amount.amount {
@@ -156,7 +156,7 @@
 
 .product-price ins {
     text-decoration: none;
-    color: #dc2626;
+    color: var(--primary);
 }
 
 .wishlist-actions {
@@ -168,6 +168,7 @@
 .wishlist-actions a {
     padding: 3px 14px;
     border-radius: 5px !important;
+    color: var(--textGrey);
 }
 
 .btn {
@@ -197,12 +198,12 @@
 }
 
 .btn-primary {
-    background: #dc2626;
+    background: var(--primary);
     color: #fff !important;
 }
 
 .btn-primary:hover {
-    background: #b91c1c;
+    background: var(--primaryDark);
 }
 
 .btn-primary.loading {
@@ -216,12 +217,12 @@
 }
 
 .btn-danger {
-    background: #dc2626;
+    background: var(--primary);
     color: #fff !important;
 }
 
 .btn-danger:hover {
-    background: #b91c1c;
+    background: var(--primaryDark);
 }
 
 .wishlist-remove-form {
@@ -248,9 +249,9 @@
 }
 
 .wishlist-remove:hover {
-    background: #fff5f5;
-    color: #dc2626;
-    border-color: #ffd6d6;
+    background: var(--primaryLight);
+    color: var(--primary);
+    border-color: var(--primaryLightBorder);
     transform: scale(1.05);
 }
 
@@ -392,18 +393,18 @@
 /* Loop & Product Page "Add to Wishlist" Button Styles */
 .betheme-child-wishlist-loop-button a.betheme-child-wishlist-button {
     background-color: #fff !important;
-    color: #dc2626 !important;
-    border: 1px solid #fecaca !important;
+    color: var(--primary) !important;
+    border: 1px solid var(--primaryLightBorder) !important;
     font-weight: 600 !important;
     transition: all 0.2s ease-in-out !important;
     text-shadow: none !important;
 }
 
 .betheme-child-wishlist-loop-button a.betheme-child-wishlist-button:hover {
-    background-color: #fff5f5 !important;
-    border-color: #fca5a5 !important;
-    color: #b91c1c !important;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08) !important;
+    background-color: var(--primaryLightHover) !important;
+    border-color: var(--primaryDark) !important;
+    color: var(--primaryDark) !important;
+    box-shadow: 0 4px 12px var(--primaryShadow) !important;
 }
 
 .betheme-child-wishlist-loop-button span.betheme-child-wishlist-added,

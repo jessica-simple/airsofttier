@@ -243,7 +243,7 @@ a.button.mfn-dynamic-data-add-to-cart.added:after{font-family: WooCommerce; cont
 
 .woocommerce .mfn-product-gallery .swiper-button-disabled{ opacity: 0; pointer-events: none; }
 
-.woocommerce div.product div.images .mfn-scroller-active { overflow: hidden; }
+.woocommerce div.product div.images .mfn-scroller-active { overflow: hidden;  }
 .woocommerce div.product div.images .mfn-scroller-active .flex-control-thumbs { overflow: unset; }
 .woocommerce .mfn-product-gallery .mfn-scroller-active ol,
 .woocommerce .mfn-product-gallery .mfn-scroller-active ol img { cursor:move !important; }

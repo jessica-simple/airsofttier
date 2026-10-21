@@ -3,6 +3,11 @@
 get_template_part('includes/class-mfn-child-woo-helper');
 get_template_part('includes/class-mfn-child-featured-product-block');
 require_once __DIR__ . '/includes/class-mfn-child-product-category-filter.php';
+require_once __DIR__ . '/includes/class-mfn-child-brands-grid.php';
+require_once __DIR__ . '/includes/class-mfn-child-sale-archive.php';
+require_once __DIR__ . '/includes/class-mfn-child-new-arrivals-archive.php';
+require_once __DIR__ . '/includes/class-mfn-child-gb-deals-archive.php';
+require_once __DIR__ . '/includes/class-mfn-child-gb-product-countdown.php';
 
 add_action('wp_enqueue_scripts', function () {
     // Load parent theme style
@@ -47,11 +52,33 @@ add_action('wp_enqueue_scripts', function () {
         return;
     }
 
+    if (function_exists('is_product') && is_product()) {
+        wp_add_inline_script(
+            'mfn-woojs',
+            'if (typeof mfnwoovars !== "undefined") { mfnwoovars.productthumbs = "10px"; }',
+            'before'
+        );
+    }
+
     wp_enqueue_script(
         'betheme-child-woocommerce',
         get_stylesheet_directory_uri() . '/js/woocommerce.js',
         array('jquery', 'mfn-woojs'),
         filemtime(get_stylesheet_directory() . '/js/woocommerce.js'),
+        true
+    );
+}, 20);
+
+add_action('wp_enqueue_scripts', function () {
+    if (! function_exists('is_cart') || ! is_cart()) {
+        return;
+    }
+
+    wp_enqueue_script(
+        'betheme-child-cart-quantity-cell',
+        get_stylesheet_directory_uri() . '/js/cart-quantity-cell.js',
+        array(),
+        filemtime(get_stylesheet_directory() . '/js/cart-quantity-cell.js'),
         true
     );
 }, 20);
@@ -71,11 +98,13 @@ add_action('admin_enqueue_scripts', function () {
 }, 100);
 
 add_action('init', function () {
+    add_shortcode('brands_grid', 'mfn_child_brands_grid_shortcode');
     add_shortcode('woocommerce_brands_list', 'mfn_child_woocommerce_brands_list_shortcode');
     add_shortcode('wc_brands_list', 'mfn_child_woocommerce_brands_list_shortcode');
     add_shortcode('betheme_social_icons', 'mfn_child_betheme_social_icons_shortcode');
     add_shortcode('mfn_social_icons', 'mfn_child_betheme_social_icons_shortcode');
     add_shortcode('woocommerce_search', 'mfn_child_woocommerce_search_shortcode');
+    add_shortcode('search_brand', 'mfn_child_search_brand_shortcode');
 });
 /**
  * Display a WooCommerce product search form.
@@ -94,6 +123,100 @@ function mfn_child_woocommerce_search_shortcode() {
         '</button>' .
         '<input type="hidden" name="post_type" value="product">' .
         '</form>';
+}
+
+/**
+ * Search WooCommerce product brands and display matching brand links.
+ *
+ * Usage:
+ * [search_brand]
+ * [search_brand taxonomy="product_brand" limit="10" placeholder="Search brands..."]
+ */
+function mfn_child_search_brand_shortcode( $atts ) {
+    $atts = shortcode_atts(
+        array(
+            'taxonomy'   => 'auto',
+            'hide_empty' => 'true',
+            'limit'      => '20',
+            'placeholder' => __( 'Search brands...', 'betheme-child' ),
+            'button_text' => __( 'Search', 'betheme-child' ),
+            'class'      => '',
+        ),
+        $atts,
+        'search_brand'
+    );
+
+    $taxonomy = sanitize_key( $atts['taxonomy'] );
+
+    if ( 'auto' === $taxonomy ) {
+        $taxonomy = '';
+
+        foreach ( array( 'product_brand', 'pa_brand', 'pwb-brand', 'yith_product_brand' ) as $brand_taxonomy ) {
+            if ( taxonomy_exists( $brand_taxonomy ) ) {
+                $taxonomy = $brand_taxonomy;
+                break;
+            }
+        }
+    }
+
+    if ( ! $taxonomy || ! taxonomy_exists( $taxonomy ) ) {
+        return '';
+    }
+
+    $search_term = isset( $_GET['brand_search'] ) ? sanitize_text_field( wp_unslash( $_GET['brand_search'] ) ) : '';
+    $limit       = max( 1, min( 100, absint( $atts['limit'] ) ) );
+    $classes     = array( 'custom-woocommerce-search', 'custom-brand-search' );
+    $input_id    = wp_unique_id( 'brand-search-input-' );
+
+    if ( '' !== $atts['class'] ) {
+        $classes[] = sanitize_html_class( $atts['class'] );
+    }
+
+    $form_action = remove_query_arg( 'brand_search' );
+
+    ob_start();
+    ?>
+    <div class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>">
+        <form role="search" method="get" action="<?php echo esc_url( $form_action ); ?>">
+            <label class="screen-reader-text" for="<?php echo esc_attr( $input_id ); ?>"><?php esc_html_e( 'Search brands', 'betheme-child' ); ?></label>
+            <input type="search" id="<?php echo esc_attr( $input_id ); ?>" name="brand_search" value="<?php echo esc_attr( $search_term ); ?>" placeholder="<?php echo esc_attr( $atts['placeholder'] ); ?>">
+            <button type="submit" aria-label="<?php echo esc_attr( $atts['button_text'] ); ?>"><?php echo esc_html( $atts['button_text'] ); ?></button>
+        </form>
+    </div>
+    <?php
+
+    if ( '' !== $search_term ) {
+        $brands = get_terms(
+            array(
+                'taxonomy'   => $taxonomy,
+                'hide_empty' => filter_var( $atts['hide_empty'], FILTER_VALIDATE_BOOLEAN ),
+                'search'     => $search_term,
+                'number'     => $limit,
+                'orderby'    => 'name',
+                'order'      => 'ASC',
+            )
+        );
+
+        if ( ! is_wp_error( $brands ) && ! empty( $brands ) ) {
+            echo '<ul class="custom-brand-search__results">';
+
+            foreach ( $brands as $brand ) {
+                $brand_link = get_term_link( $brand, $taxonomy );
+
+                if ( is_wp_error( $brand_link ) ) {
+                    continue;
+                }
+
+                echo '<li><a href="' . esc_url( $brand_link ) . '">' . esc_html( $brand->name ) . '</a></li>';
+            }
+
+            echo '</ul>';
+        } else {
+            echo '<p class="custom-brand-search__empty">' . esc_html__( 'No brands found.', 'betheme-child' ) . '</p>';
+        }
+    }
+
+    return ob_get_clean();
 }
 
 /**
