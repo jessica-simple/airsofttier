@@ -1,7 +1,7 @@
-.airsoft-notifications__list { list-style: none; padding: 0; margin: 24px 0; }
+.airsoft-notifications__list { list-style: none !important; padding: 0; margin: 24px 0 !important; }
 .airsoft-notifications__list li { padding: 18px; margin: 0 0 12px; border: 1px solid #ddd; border-radius: 6px; }
 .airsoft-notifications__list li.is-unread { border-left: 4px solid #a62b24; background: #faf7f5; }
-.airsoft-notifications__list a { display: block; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.airsoft-notifications__list a { display: block; color: inherit !important; text-decoration: underline; text-underline-offset: 3px; }
 .airsoft-notifications__list time { display: block; margin-top: 8px; font-size: .85em; color: #666; }
 .airsoft-notifications__new { display: inline-block; margin-bottom: 6px; font-size: .8em; font-weight: 700; color: #a62b24; }
 .airsoft-notifications-banner { position: fixed; right: 20px; bottom: 24px; z-index: 999; max-width: calc(100vw - 40px); padding: 14px 20px; border-radius: 8px; background: #242424; box-shadow: 0 4px 20px #0003; }
@@ -9,7 +9,7 @@
 .airsoft-notifications-banner a:focus-visible { outline: 2px solid #fff; outline-offset: 5px; }
 @media (max-width: 767px) { .airsoft-notifications-banner { bottom: 80px; right: 16px; } }
 .airsoft-notification-widget { --airsoft-notification-accent: var(--primary, #8F1F1E); display: inline-flex; align-items: center; vertical-align: middle; color: inherit; }
-.airsoft-notification-widget .airsoft-notification-toggle { position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; box-sizing: border-box; width: auto; min-width: 44px; height: 58px; padding: 0; margin: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--airsoft-notification-accent); cursor: pointer; font: inherit; line-height: 1; text-transform: none; letter-spacing: normal; }
+.airsoft-notification-widget .airsoft-notification-toggle { position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; box-sizing: border-box; width: auto; min-width: 44px; height: 58px; padding: 0; margin: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--airsoft-notification-accent); cursor: pointer; font: inherit; line-height: 1; text-transform: none; letter-spacing: normal; overflow: visible; transition: all .2s ease-in-out; }
 .airsoft-notification-widget .airsoft-notification-toggle:hover,
 .airsoft-notification-widget .airsoft-notification-toggle[aria-expanded="true"] { background: transparent; color: var(--airsoft-notification-accent); box-shadow: none; }
 .airsoft-notification-toggle::after { display: none; }
