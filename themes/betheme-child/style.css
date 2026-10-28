@@ -687,7 +687,6 @@ section.shopPage {
 /* account module */
 .mfn-header-login a,
 .mfn-header-login h4,
-.woocommerce-form-login__rememberme span,
 .mfn-show-login-modal .mfn-header-login h4,
 .woocommerce #customer_login h2{
     color: var(--white);

@@ -2,6 +2,24 @@
 
 Quick reference for the notification and group-buy shortcodes in this plugin.
 
+## Separate reseller pages
+
+The plugin creates three pages on the first administrator visit after deployment:
+
+| Page | Shortcode | Default path |
+| --- | --- | --- |
+| Reseller Registration | `[airsoft_reseller_register]` | `/reseller-registration/` |
+| Reseller Login | `[airsoft_reseller_login]` | `/reseller-login/` |
+| Reseller Portal | `[airsoft_reseller_portal]` | `/reseller-portal/` |
+
+Keep these on separate pages and exclude them from page caching. Existing pages
+are never overwritten, so a conflicting slug may receive a numeric suffix. Use
+the links under **Product Manager → Resellers** to find the generated pages.
+Members retain their existing My Account page; resellers need a separate account
+and email. Approved resellers manage products, sales, earnings, purchases,
+addresses and account details in the portal. Pending/rejected applicants see
+their status without access to buying or selling.
+
 ## Header notification bell
 
 ```text

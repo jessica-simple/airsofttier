@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Product Manager
  * Description: Manage WooCommerce product categories and group-buy deals.
- * Version: 1.0.0
+ * Version: 1.2.0
  * Author: Airsoft
  * Text Domain: product-manager
  * Requires Plugins: woocommerce
@@ -30,6 +30,19 @@ require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-inval
 require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-notifications.php';
 
 Airsoft_Product_Manager_Category_Page::init();
+
+require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-reseller-emails.php';
+require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-resellers.php';
+require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-reseller-portal.php';
+require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-reseller-pricing.php';
+require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-reseller-products.php';
+require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-reseller-orders.php';
+Airsoft_Product_Manager_Resellers::init();
+Airsoft_Product_Manager_Reseller_Emails::init();
+Airsoft_Product_Manager_Reseller_Portal::init();
+Airsoft_Product_Manager_Reseller_Pricing::init();
+Airsoft_Product_Manager_Reseller_Products::init();
+Airsoft_Product_Manager_Reseller_Orders::init();
 Airsoft_Product_Manager_Cart_Followups::init();
 Airsoft_Product_Manager_Invalid_Cart::init();
 Airsoft_Product_Manager_Notifications::init();

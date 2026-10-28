@@ -35,6 +35,9 @@ class Airsoft_Product_Manager_Notifications {
     }
 
     public static function url() {
+        if ( class_exists( 'Airsoft_Product_Manager_Reseller_Portal' ) && Airsoft_Product_Manager_Reseller_Portal::is_reseller_account() ) {
+            return add_query_arg( 'section', 'notifications', Airsoft_Product_Manager_Reseller_Portal::url() );
+        }
         return add_query_arg( 'notifications', '1', wc_get_page_permalink( 'myaccount' ) );
     }
 

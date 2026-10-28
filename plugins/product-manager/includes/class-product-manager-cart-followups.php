@@ -256,7 +256,7 @@ class Airsoft_Product_Manager_Cart_Followups {
 		$message   = __( "The following carts have been inactive past your follow-up delay:\n\n", 'product-manager' );
 		$message  .= implode( "\n\n", $items );
 		$message  .= "\n\n" . sprintf( __( 'Review carts in WordPress admin: %s', 'product-manager' ), $admin_url );
-		$sent      = wp_mail( $settings['email'], $subject, $message );
+		$sent      = Airsoft_Product_Manager_Reseller_Emails::send( $settings['email'], $subject, $message );
 		if ( $sent ) {
 			$ids = array_map( 'absint', wp_list_pluck( $rows, 'id' ) );
 			$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
