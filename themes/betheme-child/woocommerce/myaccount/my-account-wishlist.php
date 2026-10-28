@@ -35,11 +35,23 @@ if ('POST' === $_SERVER['REQUEST_METHOD'] && isset($_POST['wishlist_action']) &&
     } elseif ('remove' === $action) {
         $index = isset($_POST['item_index']) ? absint(wp_unslash($_POST['item_index'])) : -1;
         if (isset($wishlist_items[$index])) {
+            WC()->session->set('wishlist_removed_item', $wishlist_items[$index]);
             array_splice($wishlist_items, $index, 1);
             betheme_child_save_wishlist_items($wishlist_items);
             wc_add_notice(esc_html__('Item removed from your wishlist.', 'betheme-child'), 'success');
         }
+    } elseif ('undo' === $action) {
+        $removed_item = WC()->session->get('wishlist_removed_item');
+        if (is_array($removed_item)) {
+            if (!in_array($removed_item, $wishlist_items, true)) {
+                $wishlist_items[] = $removed_item;
+                betheme_child_save_wishlist_items($wishlist_items);
+            }
+            WC()->session->__unset('wishlist_removed_item');
+            wc_add_notice(esc_html__('Item restored to your wishlist.', 'betheme-child'), 'success');
+        }
     } elseif ('clear' === $action) {
+        WC()->session->__unset('wishlist_removed_item');
         $wishlist_items = array();
         betheme_child_save_wishlist_items($wishlist_items);
         wc_add_notice(esc_html__('Wishlist cleared.', 'betheme-child'), 'success');
@@ -52,6 +64,15 @@ if ('POST' === $_SERVER['REQUEST_METHOD'] && isset($_POST['wishlist_action']) &&
 wc_print_notices();
 ?>
 <div class="wishlist-page">
+
+    <?php if (WC()->session->get('wishlist_removed_item')): ?>
+        <form method="post" action="<?php echo esc_url($endpoint_url); ?>" class="wishlist-undo-form">
+            <span><?php esc_html_e('Item removed.', 'betheme-child'); ?></span>
+            <input type="hidden" name="wishlist_action" value="undo">
+            <?php wp_nonce_field('betheme_child_wishlist_action'); ?>
+            <button type="submit" class="btn btn-outline"><?php esc_html_e('Undo', 'betheme-child'); ?></button>
+        </form>
+    <?php endif; ?>
 
     <div class="wishlist-header">
         <div>
@@ -124,14 +145,16 @@ wc_print_notices();
                 <div class="wishlist-card">
 
                     <div class="wishlist-image">
+                        <?php if ('#' !== $product_url): ?><a href="<?php echo esc_url($product_url); ?>"><?php endif; ?>
                         <img src="<?php echo esc_url($product_image_url); ?>" alt="<?php echo esc_attr($product_name); ?>">
+                        <?php if ('#' !== $product_url): ?></a><?php endif; ?>
                     </div>
 
                     <div class="wishlist-content">
 
                         <span class="product-tag"><?php echo esc_html($category_name); ?></span>
 
-                        <h2><?php echo esc_html($product_name); ?></h2>
+                        <h2><?php if ('#' !== $product_url): ?><a href="<?php echo esc_url($product_url); ?>"><?php endif; ?><?php echo esc_html($product_name); ?><?php if ('#' !== $product_url): ?></a><?php endif; ?></h2>
 
                         <?php if ($is_in_stock): ?>
                             <div class="stock-status in-stock">
@@ -152,7 +175,7 @@ wc_print_notices();
                         <?php endif; ?>
 
                         <div class="wishlist-actions">
-                            <?php if (!empty($product_url) && '#' !== $product_url): ?>
+                            <?php if (!$product && !empty($product_url) && '#' !== $product_url): ?>
                                 <a href="<?php echo esc_url($product_url); ?>" class="btn btn-outline">
                                     <?php esc_html_e('View Product', 'betheme-child'); ?>
                                 </a>
@@ -163,12 +186,12 @@ wc_print_notices();
                                 if ($product->is_type('variable')) {
                                     $btn_label = esc_html__('Select Options', 'betheme-child');
                                     $btn_class = 'btn btn-primary';
-                                } elseif (!$product->is_in_stock()) {
-                                    $btn_label = esc_html__('Read More', 'betheme-child');
+                                } elseif (!$is_purchasable || !$product->is_type('simple')) {
+                                    $btn_label = $product->add_to_cart_text();
                                     $btn_class = 'btn btn-primary';
                                 } else {
                                     $btn_label = esc_html__('Add To Cart', 'betheme-child');
-                                    $btn_class = 'btn btn-primary add_to_cart_button ajax_add_to_cart';
+                                    $btn_class = 'btn btn-primary add_to_cart_button' . ($product->supports('ajax_add_to_cart') ? ' ajax_add_to_cart' : '');
                                 }
                                 ?>
                                 <a href="<?php echo esc_url($product->add_to_cart_url()); ?>"
@@ -186,7 +209,7 @@ wc_print_notices();
                         <input type="hidden" name="wishlist_action" value="remove">
                         <input type="hidden" name="item_index" value="<?php echo esc_attr($index); ?>">
                         <?php wp_nonce_field('betheme_child_wishlist_action'); ?>
-                        <button type="submit" class="wishlist-remove"
+                        <button type="submit" class="wishlist-remove" aria-label="<?php echo esc_attr(sprintf(__('Remove %s from wishlist', 'betheme-child'), $product_name)); ?>"
                             title="<?php esc_attr_e('Remove from Wishlist', 'betheme-child'); ?>">
                             <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" height="200px"
                                 width="200px" xmlns="http://www.w3.org/2000/svg">
@@ -205,7 +228,7 @@ wc_print_notices();
     <?php if (!empty($wishlist_items)): ?>
         <div class="wishlist-footer">
             <form method="post" action="<?php echo esc_url($endpoint_url); ?>" class="csw-wishlist-clear-form"
-                style="margin: 0; display: inline-block;">
+                data-confirm="<?php esc_attr_e('Remove all items from your wishlist?', 'betheme-child'); ?>" style="margin: 0; display: inline-block;">
                 <input type="hidden" name="wishlist_action" value="clear">
                 <?php wp_nonce_field('betheme_child_wishlist_action'); ?>
                 <button type="submit" class="btn btn-danger">
@@ -216,3 +239,15 @@ wc_print_notices();
     <?php endif; ?>
 
 </div>
+<script>
+document.querySelector('.csw-wishlist-clear-form')?.addEventListener('submit', function (event) {
+    if (!window.confirm(this.dataset.confirm)) event.preventDefault();
+});
+if (window.jQuery) {
+    window.jQuery(document.body).off('added_to_cart.wishlistFeedback').on('added_to_cart.wishlistFeedback', function (event, fragments, hash, button) {
+        if (button && button.closest('.wishlist-page').length) {
+            button.text(<?php echo wp_json_encode(__('Added to cart', 'betheme-child')); ?>).attr('aria-live', 'polite');
+        }
+    });
+}
+</script>

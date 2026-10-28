@@ -79,8 +79,75 @@
     #customer_login h2{
         font-size:26px;
     }
-    .woocommerce-MyAccount-content{
-        padding:20px;
+    .woocommerce-account.logged-in #Content .woocommerce-MyAccount-content {
+        width: 100%;
+        min-width: 0;
+        padding: 20px;
+        box-sizing: border-box;
+        border-radius: 16px;
+        overflow-wrap: anywhere;
+    }
+
+    .woocommerce-MyAccount-content .woocommerce-Addresses {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .woocommerce-MyAccount-content .woocommerce-Address {
+        min-width: 0;
+        padding: 16px;
+        box-sizing: border-box;
+        border-radius: 16px;
+    }
+
+    .woocommerce-MyAccount-content .woocommerce-Address address {
+        padding: 16px;
+        min-height: 0;
+    }
+
+    .woocommerce-MyAccount-content .woocommerce-Address-title .edit {
+        box-sizing: border-box;
+        text-align: center;
+    }
+
+    .woocommerce-MyAccount-content form .form-row-first,
+    .woocommerce-MyAccount-content form .form-row-last {
+        float: none;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .woocommerce-MyAccount-content form .input-text,
+    .woocommerce-MyAccount-content form select {
+        max-width: 100%;
+        box-sizing: border-box;
+        font-size: 16px;
+    }
+
+    .woocommerce-MyAccount-content table.shop_table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    .woocommerce-MyAccount-content table.shop_table th,
+    .woocommerce-MyAccount-content table.shop_table td {
+        padding: 10px 8px;
+        overflow-wrap: anywhere;
+    }
+
+    .woocommerce-MyAccount-content .csw-card-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .woocommerce-MyAccount-content .csw-account-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+    }
+
+    .woocommerce-MyAccount-content .csw-acct-val {
+        min-width: 0;
+        max-width: 100%;
     }
 
     .woocommerce-Address-title{
@@ -96,6 +163,10 @@
 
     .gb-deal-banner-thumbnail img {
     height: 340px !important;
+    max-width: 140% !important;
+}
+.gb-deal-banner-regular-price.countdown-ended span{
+    font-size: 17px !important;
 }
     .gb-deal-grid,
     .gb-deal-grid.gb-cols-3 {
@@ -219,4 +290,108 @@ Footer ul.woocommerce-brands-list li{
     .trust-item::after{
         display:none;
     }
+}
+
+/* Group-buy cards: keep both list themes within the mobile viewport. */
+@media (max-width: 768px) {
+    .gb-deal-grid[class*="gb-cols-"] {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .gb-deal-item {
+        min-width: 0;
+        padding: 16px;
+        box-sizing: border-box;
+    }
+
+    .gb-deal-item .gb-deal-link {
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .gb-deal-item .gb-deal-image {
+        width: 100%;
+        margin: 0 0 16px;
+    }
+
+    .gb-deal-item .gb-deal-image img {
+        width: 100%;
+        height: auto;
+        max-height: 240px;
+        object-fit: contain;
+    }
+
+    .gb-deal-item .gb-deal-content,
+    .gb-deal-item .gb-compact-info {
+        width: 100%;
+        min-width: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .gb-deal-item .gb-deal-title {
+        overflow-wrap: anywhere;
+    }
+
+    .gb-deal-item .gb-deal-meta-row,
+    .gb-deal-item .gb-deal-price-wrapper,
+    .gb-deal-item .gb-add-to-cart-wrapper {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .gb-deal-item .gb-deal-price {
+        margin-right: 0;
+    }
+
+    .gb-deal-item .gb-timer.gb-timer-compact {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+        width: 100%;
+        gap: 4px;
+        transform: none;
+    }
+
+    .gb-deal-item .gb-timer.gb-timer-compact .gb-time-unit {
+        min-width: 0 !important;
+        padding: 8px 2px;
+        box-sizing: border-box;
+    }
+
+    .gb-deal-item .gb-timer .gb-time-unit .gb-unit-value {
+        font-size: 22px;
+    }
+
+    .gb-deal-item .gb-timer .gb-time-unit .gb-unit-label {
+        font-size: 8px;
+    }
+
+    .gb-deal-item .gb-expired-notice {
+        grid-column: 1 / -1;
+    }
+
+    .gb-deal-item .gb-add-to-cart-wrapper .button {
+        box-sizing: border-box;
+        height: auto;
+        min-height: 44px;
+        white-space: normal;
+    }
+
+    .gb-deal-item .betheme-child-wishlist-loop-button {
+        width: 100%;
+        margin: 0;
+    }
+
+    .woocommerce-MyAccount-content .woocommerce-info {
+    padding: 10px;
+}
+
+.woocommerce-MyAccount-content .woocommerce-info a {
+    float: none !important;
+    display: table;
+    margin: 0 0 10px;
+    width: 100%;
+    text-align: center;
+}
 }

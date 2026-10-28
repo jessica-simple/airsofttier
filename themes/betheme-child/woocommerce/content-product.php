@@ -128,7 +128,7 @@ $title_tag_after = '</'. mfn_allowed_title_tag($title_tag) .'>';
 						),
 						$current_url
 					);
-					$login_url = wp_login_url( $redirect_to );
+					$login_url = betheme_child_wishlist_login_url( $redirect_to );
 					echo '<a class="button" href="' . esc_url( $login_url ) . '">' . esc_html__( 'Login to add wishlist', 'betheme-child' ) . '</a>';
 				} elseif ( betheme_child_is_product_in_wishlist( $product->get_id() ) ) {
 					echo '<span class="button secondary betheme-child-wishlist-added">' . esc_html__( 'In wishlist', 'betheme-child' ) . '</span>';

@@ -1,0 +1,46 @@
+.airsoft-notifications__list { list-style: none; padding: 0; margin: 24px 0; }
+.airsoft-notifications__list li { padding: 18px; margin: 0 0 12px; border: 1px solid #ddd; border-radius: 6px; }
+.airsoft-notifications__list li.is-unread { border-left: 4px solid #a62b24; background: #faf7f5; }
+.airsoft-notifications__list a { display: block; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.airsoft-notifications__list time { display: block; margin-top: 8px; font-size: .85em; color: #666; }
+.airsoft-notifications__new { display: inline-block; margin-bottom: 6px; font-size: .8em; font-weight: 700; color: #a62b24; }
+.airsoft-notifications-banner { position: fixed; right: 20px; bottom: 24px; z-index: 999; max-width: calc(100vw - 40px); padding: 14px 20px; border-radius: 8px; background: #242424; box-shadow: 0 4px 20px #0003; }
+.airsoft-notifications-banner a { color: #fff; font-weight: 600; text-decoration: none; }
+.airsoft-notifications-banner a:focus-visible { outline: 2px solid #fff; outline-offset: 5px; }
+@media (max-width: 767px) { .airsoft-notifications-banner { bottom: 80px; right: 16px; } }
+.airsoft-notification-widget { --airsoft-notification-accent: var(--primary, #8F1F1E); display: inline-flex; align-items: center; vertical-align: middle; color: inherit; }
+.airsoft-notification-widget .airsoft-notification-toggle { position: relative; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; box-sizing: border-box; width: auto; min-width: 44px; height: 58px; padding: 0; margin: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; color: var(--airsoft-notification-accent); cursor: pointer; font: inherit; line-height: 1; text-transform: none; letter-spacing: normal; }
+.airsoft-notification-widget .airsoft-notification-toggle:hover,
+.airsoft-notification-widget .airsoft-notification-toggle[aria-expanded="true"] { background: transparent; color: var(--airsoft-notification-accent); box-shadow: none; }
+.airsoft-notification-toggle::after { display: none; }
+.airsoft-notification-widget .airsoft-notification-symbol { position: relative; display: block; flex: 0 0 25px; width: 25px; height: 25px; line-height: 25px; }
+.airsoft-notification-widget .airsoft-notification-icon { display: block; width: 25px; height: 25px; background-color: currentColor; -webkit-mask: url("../images/notification-bell.svg") center / contain no-repeat; mask: url("../images/notification-bell.svg") center / contain no-repeat; }
+.airsoft-notification-widget .airsoft-notification-caption { display: block; color: var(--darkText, #1E2438); font-size: 13px; font-weight: 400; line-height: 28px; white-space: nowrap; }
+/* Keep previously cached shortcode markup visible during deployment. */
+.airsoft-notification-widget .airsoft-notification-toggle svg { display: block; flex: 0 0 25px; width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-width: 2; }
+.airsoft-notification-widget .airsoft-notification-toggle svg path { fill: none; stroke: currentColor; }
+.airsoft-notification-widget .airsoft-notification-badge { position: absolute; top: -7px; right: -9px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #333; color: #fff; font: 700 11px/18px sans-serif; text-align: center; box-sizing: border-box; pointer-events: none; }
+.airsoft-notification-panel { position: fixed; z-index: 100001; box-sizing: border-box; overflow: auto; overscroll-behavior: contain; width: 380px; padding: 0; border: 1px solid #ddd; border-radius: 10px; background: #fff; color: #242424; box-shadow: 0 8px 32px #0003; font-size: 14px; line-height: 1.5; text-align: start; }
+.airsoft-notification-panel[hidden], .airsoft-notification-widget [hidden], .airsoft-notification-panel [hidden] { display: none !important; }
+.airsoft-notification-heading { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid #eee; }
+.airsoft-notification-panel .airsoft-notification-read-all { padding: 0; margin: 0; border: 0; background: none; box-shadow: none; color: #8b241e; font: inherit; font-size: 12px; text-decoration: underline; cursor: pointer; }
+.airsoft-notification-read-all::after { display: none; }
+.airsoft-notification-panel .airsoft-notification-read-all:disabled { opacity: .5; cursor: default; }
+.airsoft-notification-preview { list-style: none; padding: 0; margin: 0; }
+.airsoft-notification-preview li { list-style: none; margin: 0; padding: 0; border-bottom: 1px solid #eee; }
+.airsoft-notification-preview li.is-unread { background: #faf7f5; }
+.airsoft-notification-panel .airsoft-notification-preview a { display: block; padding: 14px 16px; color: #242424; text-decoration: none; overflow-wrap: anywhere; }
+.airsoft-notification-preview time { display: block; margin-top: 6px; color: #666; font-size: 12px; }
+.airsoft-notification-unread { display: block; margin-bottom: 4px; color: #8b241e; font-weight: 700; font-size: 11px; }
+.airsoft-notification-panel .airsoft-notification-view-all { display: block; padding: 14px 16px; color: #8b241e; text-align: center; text-decoration: underline; }
+.airsoft-notification-empty { padding: 24px 16px; margin: 0; color: #666; text-align: center; }
+.airsoft-notification-feedback { margin: 0; padding: 0 16px; color: #8b241e; }
+.airsoft-notification-feedback:not(:empty) { padding-top: 12px; padding-bottom: 12px; }
+.airsoft-notification-widget .airsoft-notification-toggle:focus-visible { outline: 2px solid var(--airsoft-notification-accent); outline-offset: 2px; }
+.airsoft-notification-panel a:focus-visible, .airsoft-notification-panel button:focus-visible { outline: 2px solid #a62b24; outline-offset: -3px; }
+.airsoft-notifications-banner .airsoft-notification-widget { color: #fff; }
+.airsoft-notifications-banner .airsoft-notification-toggle,
+.airsoft-notifications-banner .airsoft-notification-toggle:hover,
+.airsoft-notifications-banner .airsoft-notification-toggle[aria-expanded="true"],
+.airsoft-notifications-banner .airsoft-notification-caption { color: #fff; }
+@media (prefers-reduced-motion: reduce) { .airsoft-notification-widget .airsoft-notification-toggle { transition: none; } }

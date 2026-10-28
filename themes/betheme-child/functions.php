@@ -6,8 +6,6 @@ require_once __DIR__ . '/includes/class-mfn-child-product-category-filter.php';
 require_once __DIR__ . '/includes/class-mfn-child-brands-grid.php';
 require_once __DIR__ . '/includes/class-mfn-child-sale-archive.php';
 require_once __DIR__ . '/includes/class-mfn-child-new-arrivals-archive.php';
-require_once __DIR__ . '/includes/class-mfn-child-gb-deals-archive.php';
-require_once __DIR__ . '/includes/class-mfn-child-gb-product-countdown.php';
 
 add_action('wp_enqueue_scripts', function () {
     // Load parent theme style
@@ -30,6 +28,19 @@ add_action('wp_enqueue_scripts', function () {
         get_stylesheet_directory_uri() . '/js/mfn-opt-expandable.js',
         array('jquery'),
         filemtime(get_stylesheet_directory() . '/js/mfn-opt-expandable.js'),
+        true
+    );
+    wp_enqueue_style(
+        'betheme-child-mobile-filters',
+        get_stylesheet_directory_uri() . '/css/mobile-filters.css',
+        array('child-style', 'child-custom-responsive-style'),
+        filemtime(get_stylesheet_directory() . '/css/mobile-filters.css')
+    );
+    wp_enqueue_script(
+        'betheme-child-mobile-filters',
+        get_stylesheet_directory_uri() . '/js/mobile-filters.js',
+        array('jquery'),
+        filemtime(get_stylesheet_directory() . '/js/mobile-filters.js'),
         true
     );
 }, 100);
@@ -82,6 +93,13 @@ add_action('wp_enqueue_scripts', function () {
         true
     );
 }, 20);
+
+add_action('wp_enqueue_scripts', function () {
+    if (function_exists('is_checkout') && is_checkout()) {
+        // This cart-only enhancer adds GBDEAL markers without replacing them in checkout.
+        wp_dequeue_script('gb-cart-deal');
+    }
+}, 100);
 
 add_action('admin_enqueue_scripts', function () {
     if ( ! isset( $_GET['action'] ) || $_GET['action'] !== 'mfn-live-builder' ) {
@@ -420,6 +438,36 @@ function betheme_child_coupons_endpoint_content() {
     wc_get_template( 'myaccount/my-account-coupons.php' );
 }
 
+function betheme_child_wishlist_login_url( $redirect_to ) {
+    return add_query_arg( 'betheme_wishlist_redirect', $redirect_to, wc_get_page_permalink( 'myaccount' ) );
+}
+
+// Carry the selected product through the customer login (including failed attempts).
+add_action( 'woocommerce_login_form', 'betheme_child_wishlist_login_redirect_field' );
+function betheme_child_wishlist_login_redirect_field() {
+    if ( empty( $_GET['betheme_wishlist_redirect'] ) ) {
+        return;
+    }
+
+    $redirect = wp_validate_redirect( wp_unslash( $_GET['betheme_wishlist_redirect'] ), wc_get_page_permalink( 'myaccount' ) );
+    echo '<input type="hidden" name="redirect" value="' . esc_attr( $redirect ) . '" />';
+}
+
+add_filter( 'woocommerce_login_redirect', 'betheme_child_wishlist_after_login_redirect' );
+function betheme_child_wishlist_after_login_redirect( $redirect ) {
+    $redirect = wp_validate_redirect( $redirect, wc_get_page_permalink( 'myaccount' ) );
+    $query = wp_parse_url( $redirect, PHP_URL_QUERY );
+    $args = array();
+    wp_parse_str( (string) $query, $args );
+
+    if ( ! empty( $args['betheme_wishlist_add_product'] ) ) {
+        // Guest nonces are no longer valid once WooCommerce signs the customer in.
+        $redirect = add_query_arg( '_wpnonce', wp_create_nonce( 'betheme_child_wishlist_add_product' ), $redirect );
+    }
+
+    return $redirect;
+}
+
 add_action( 'template_redirect', 'betheme_child_handle_wishlist_add_request' );
 function betheme_child_handle_wishlist_add_request() {
     if ( empty( $_GET['betheme_wishlist_add_product'] ) ) {
@@ -432,7 +480,7 @@ function betheme_child_handle_wishlist_add_request() {
     }
 
     if ( ! is_user_logged_in() ) {
-        wp_safe_redirect( wp_login_url( home_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) );
+        wp_safe_redirect( betheme_child_wishlist_login_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
         exit;
     }
 
@@ -470,7 +518,7 @@ function betheme_child_append_wishlist_to_cart_button( $html, $product ) {
             ),
             $current_url
         );
-        $login_url = wp_login_url( $redirect_to );
+        $login_url = betheme_child_wishlist_login_url( $redirect_to );
         $wishlist_html .= '<a class="button" href="' . esc_url( $login_url ) . '">' . esc_html__( 'Login to add wishlist', 'betheme-child' ) . '</a>';
     } elseif ( betheme_child_is_product_in_wishlist( $product->get_id() ) ) {
         $wishlist_html .= '<span class="button secondary betheme-child-wishlist-added">' . esc_html__( 'In wishlist', 'betheme-child' ) . '</span>';
@@ -509,7 +557,7 @@ function betheme_child_display_wishlist_loop_button() {
             ),
             $current_url
         );
-        $login_url = wp_login_url( $redirect_to );
+        $login_url = betheme_child_wishlist_login_url( $redirect_to );
         echo '<a class="button" href="' . esc_url( $login_url ) . '">' . esc_html__( 'Login to add wishlist', 'betheme-child' ) . '</a>';
     } elseif ( betheme_child_is_product_in_wishlist( $product->get_id() ) ) {
         echo '<span class="button secondary betheme-child-wishlist-added">' . esc_html__( 'In wishlist', 'betheme-child' ) . '</span>';
@@ -548,7 +596,7 @@ function betheme_child_display_single_wishlist_button() {
             ),
             $current_url
         );
-        $login_url = wp_login_url( $redirect_to );
+        $login_url = betheme_child_wishlist_login_url( $redirect_to );
         echo '<a class="button" href="' . esc_url( $login_url ) . '">' . esc_html__( 'Login to add wishlist', 'betheme-child' ) . '</a>';
     } elseif ( betheme_child_is_product_in_wishlist( $product->get_id() ) ) {
         echo '<span class="button secondary betheme-child-wishlist-added">' . esc_html__( 'In wishlist', 'betheme-child' ) . '</span>';
@@ -694,6 +742,258 @@ function betheme_child_cart_items_count_shortcode() {
         return '<span class="woocommerce-cart-items-count">' . intval($cart_count) . '</span>';
     }
     return '0';
+}
+
+// Keep sold-out products in the cart so customers can remove them themselves,
+// while showing them separately from items they can still purchase.
+add_filter('woocommerce_cart_item_visible', 'betheme_child_hide_sold_out_cart_items_from_active_list', 10, 3);
+function betheme_child_hide_sold_out_cart_items_from_active_list($visible, $cart_item, $cart_item_key) {
+    if (!function_exists('is_cart') || !is_cart() || empty($cart_item['data']) || !is_a($cart_item['data'], 'WC_Product')) {
+        return $visible;
+    }
+
+    return $cart_item['data']->is_in_stock() ? $visible : false;
+}
+
+add_action('woocommerce_cart_contents', 'betheme_child_render_sold_out_cart_items');
+function betheme_child_render_sold_out_cart_items() {
+    if (!function_exists('is_cart') || !is_cart() || !WC()->cart) {
+        return;
+    }
+
+    $sold_out_items = array();
+    foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
+        $product = isset($cart_item['data']) ? $cart_item['data'] : null;
+        if ($product instanceof WC_Product && $product->exists() && ! $product->is_in_stock() && ! empty($cart_item['quantity'])) {
+            $sold_out_items[$cart_item_key] = $cart_item;
+        }
+    }
+
+    if (!$sold_out_items) {
+        return;
+    }
+
+    echo '<tr class="cart-invalid-items-heading"><th colspan="6"><h2>' . esc_html__('Invalid items', 'woocommerce') . '</h2></th></tr>';
+    echo '<tr class="cart-invalid-items-actions"><td colspan="6"><p>' . esc_html__('Sold-out items will be removed when you continue to checkout.', 'woocommerce') . '</p><a class="button cart-remove-invalid-items" href="' . esc_url(betheme_child_invalid_cart_action_url('remove_invalid')) . '">' . esc_html__('Remove all invalid items', 'woocommerce') . '</a></td></tr>';
+    foreach ($sold_out_items as $cart_item_key => $cart_item) {
+        $product = $cart_item['data'];
+        $product_id = isset($cart_item['product_id']) ? absint($cart_item['product_id']) : $product->get_id();
+        $name = $product->get_name();
+        $thumbnail = $product->get_image();
+        $remove_link = sprintf(
+            '<a role="button" href="%1$s" class="remove mfn-close-icon" aria-label="%2$s" data-product_id="%3$s" data-product_sku="%4$s"><span class="icon">&#10005;</span></a>',
+            esc_url(wc_get_cart_remove_url($cart_item_key)),
+            esc_attr(sprintf(__('Remove %s from cart', 'woocommerce'), $name)),
+            esc_attr($product_id),
+            esc_attr($product->get_sku())
+        );
+        ?>
+        <tr class="cart_item cart-invalid-item">
+            <td class="product-thumbnail"><?php echo wp_kses_post($thumbnail); ?></td>
+            <td class="product-name" data-title="<?php esc_attr_e('Product', 'woocommerce'); ?>">
+                <?php echo wp_kses_post($name); ?>
+                <span class="cart-invalid-item__status"><?php esc_html_e('Sold out', 'woocommerce'); ?></span>
+            </td>
+            <td colspan="3" class="cart-invalid-item__spacer" aria-hidden="true"></td>
+            <td class="product-remove"><?php echo wp_kses_post($remove_link); ?></td>
+        </tr>
+        <?php
+    }
+}
+
+// Expose stock availability to the Cart block so its items can be grouped too.
+if (did_action('woocommerce_blocks_loaded')) {
+    // The active theme loads after plugins, so WooCommerce may have fired this
+    // action before the child theme can subscribe to it.
+    betheme_child_register_cart_item_stock_extension();
+} else {
+    add_action('woocommerce_blocks_loaded', 'betheme_child_register_cart_item_stock_extension');
+}
+function betheme_child_register_cart_item_stock_extension() {
+    if (!function_exists('woocommerce_store_api_register_endpoint_data')) {
+        return;
+    }
+
+    woocommerce_store_api_register_endpoint_data(array(
+        'endpoint' => 'cart-item',
+        'namespace' => 'airsoft-cart',
+        'schema_callback' => function () {
+            return array(
+                'sold_out' => array(
+                    'description' => __('Whether this cart item is sold out.', 'woocommerce'),
+                    'type' => 'boolean',
+                ),
+            );
+        },
+        'data_callback' => function ($cart_item) {
+            $product = isset($cart_item['data']) ? $cart_item['data'] : null;
+            return array('sold_out' => $product instanceof WC_Product && !$product->is_in_stock());
+        },
+    ));
+}
+
+function betheme_child_invalid_cart_action_url($action) {
+    return add_query_arg(array(
+        'airsoft_cart_action' => sanitize_key($action),
+        '_wpnonce' => wp_create_nonce('airsoft_cart_action'),
+    ), wc_get_cart_url());
+}
+
+add_action('template_redirect', 'betheme_child_handle_invalid_cart_action', 1);
+function betheme_child_handle_invalid_cart_action() {
+    if (!function_exists('is_cart') || !is_cart() || empty($_GET['airsoft_cart_action']) || !function_exists('WC') || !WC()->cart) {
+        return;
+    }
+
+    $action = sanitize_key(wp_unslash($_GET['airsoft_cart_action']));
+    if (!in_array($action, array('remove_invalid', 'checkout'), true)) {
+        return;
+    }
+
+    $nonce = isset($_GET['_wpnonce']) ? sanitize_text_field(wp_unslash($_GET['_wpnonce'])) : '';
+    if (!wp_verify_nonce($nonce, 'airsoft_cart_action')) {
+        wc_add_notice(__('Your cart action expired. Please try again.', 'woocommerce'), 'error');
+        wp_safe_redirect(wc_get_cart_url());
+        exit;
+    }
+
+    if ('remove_invalid' === $action && WC()->session) {
+        WC()->session->__unset('airsoft_invalid_cart_backup');
+    }
+
+    $removed = 0;
+    $backup = array();
+    foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
+        $product = isset($cart_item['data']) ? $cart_item['data'] : null;
+        if ($product instanceof WC_Product && !$product->is_in_stock()) {
+            if ('checkout' === $action) {
+                $backup[] = array(
+                    'product_id' => absint($cart_item['product_id']),
+                    'variation_id' => isset($cart_item['variation_id']) ? absint($cart_item['variation_id']) : 0,
+                    'variation' => isset($cart_item['variation']) ? $cart_item['variation'] : array(),
+                    'quantity' => max(1, absint($cart_item['quantity'])),
+                    'cart_item_data' => array_diff_key($cart_item, array_flip(array(
+                        'key', 'product_id', 'variation_id', 'variation', 'quantity', 'data',
+                        'line_tax_data', 'line_subtotal', 'line_subtotal_tax', 'line_total', 'line_tax',
+                    ))),
+                );
+            }
+            WC()->cart->remove_cart_item($cart_item_key);
+            $removed++;
+        }
+    }
+
+    if ('checkout' === $action && WC()->session && $backup) {
+        WC()->session->set('airsoft_invalid_cart_backup', $backup);
+    }
+    WC()->cart->calculate_totals();
+
+    if ($removed) {
+        wc_add_notice(sprintf(_n('%d sold-out item was removed from your cart.', '%d sold-out items were removed from your cart.', $removed, 'woocommerce'), $removed), 'notice');
+    }
+
+    if ('checkout' === $action && !WC()->cart->is_empty()) {
+        wp_safe_redirect(wc_get_checkout_url());
+        exit;
+    }
+
+    if ('checkout' === $action) {
+        wc_add_notice(__('Your cart has no available items. Continue shopping to find something in stock.', 'woocommerce'), 'notice');
+        wp_safe_redirect(wc_get_page_permalink('shop'));
+        exit;
+    }
+
+    wp_safe_redirect(wc_get_cart_url());
+    exit;
+}
+
+add_action('template_redirect', 'betheme_child_restore_invalid_cart_items', 2);
+function betheme_child_restore_invalid_cart_items() {
+    if (!function_exists('is_cart') || !is_cart() || isset($_GET['airsoft_cart_action']) || !function_exists('WC') || !WC()->cart || !WC()->session) {
+        return;
+    }
+
+    $backup = WC()->session->get('airsoft_invalid_cart_backup', array());
+    if (empty($backup) || !is_array($backup)) {
+        return;
+    }
+
+    $cart_contents = WC()->cart->get_cart_contents();
+    foreach ($backup as $item) {
+        $product_id = isset($item['product_id']) ? absint($item['product_id']) : 0;
+        $variation_id = isset($item['variation_id']) ? absint($item['variation_id']) : 0;
+        $variation = isset($item['variation']) && is_array($item['variation']) ? $item['variation'] : array();
+        $quantity = isset($item['quantity']) ? max(1, absint($item['quantity'])) : 1;
+        $cart_item_data = isset($item['cart_item_data']) && is_array($item['cart_item_data']) ? $item['cart_item_data'] : array();
+        $product = wc_get_product($variation_id ? $variation_id : $product_id);
+
+        if (!$product_id || !$product) {
+            continue;
+        }
+
+        $cart_item_key = WC()->cart->generate_cart_id($product_id, $variation_id, $variation, $cart_item_data);
+        if (isset($cart_contents[$cart_item_key])) {
+            continue;
+        }
+
+        $cart_contents[$cart_item_key] = array_merge($cart_item_data, array(
+            'key' => $cart_item_key,
+            'product_id' => $product_id,
+            'variation_id' => $variation_id,
+            'variation' => $variation,
+            'quantity' => $quantity,
+            'data' => $product,
+        ));
+    }
+
+    WC()->cart->set_cart_contents($cart_contents);
+    WC()->cart->calculate_totals();
+    WC()->session->__unset('airsoft_invalid_cart_backup');
+}
+
+add_action('woocommerce_thankyou', 'betheme_child_clear_invalid_cart_backup_after_order', 10, 1);
+add_action('woocommerce_order_status_processing', 'betheme_child_clear_invalid_cart_backup_after_order');
+add_action('woocommerce_order_status_completed', 'betheme_child_clear_invalid_cart_backup_after_order');
+add_action('woocommerce_order_status_on-hold', 'betheme_child_clear_invalid_cart_backup_after_order');
+function betheme_child_clear_invalid_cart_backup_after_order($order_id = 0) {
+    if (!function_exists('WC') || !WC()->session || !$order_id) {
+        return;
+    }
+
+    $order = wc_get_order($order_id);
+    if ($order && in_array($order->get_status(), array('processing', 'completed', 'on-hold'), true)) {
+        WC()->session->__unset('airsoft_invalid_cart_backup');
+    }
+}
+
+add_action('wp_enqueue_scripts', 'betheme_child_enqueue_invalid_cart_items_assets', 25);
+function betheme_child_enqueue_invalid_cart_items_assets() {
+    if (!function_exists('is_cart') || !is_cart()) {
+        return;
+    }
+
+    wp_enqueue_script(
+        'betheme-child-invalid-cart-items',
+        get_stylesheet_directory_uri() . '/js/invalid-cart-items.js',
+        array(),
+        filemtime(get_stylesheet_directory() . '/js/invalid-cart-items.js'),
+        true
+    );
+    wp_localize_script('betheme-child-invalid-cart-items', 'airsoftInvalidCart', array(
+        'shopUrl' => wc_get_page_permalink('shop'),
+        'checkoutUrl' => betheme_child_invalid_cart_action_url('checkout'),
+        'normalCheckoutUrl' => wc_get_checkout_url(),
+        'removeAllUrl' => betheme_child_invalid_cart_action_url('remove_invalid'),
+        'soldOutCheckoutNote' => __('Sold-out items will be removed when you continue to checkout.', 'woocommerce'),
+        'continueShopping' => __('Continue shopping', 'woocommerce'),
+        'removeAllInvalid' => __('Remove all invalid items', 'woocommerce'),
+    ));
+    wp_enqueue_style(
+        'betheme-child-invalid-cart-items',
+        get_stylesheet_directory_uri() . '/css/invalid-cart-items.css',
+        array('child-style'),
+        filemtime(get_stylesheet_directory() . '/css/invalid-cart-items.css')
+    );
 }
 
 add_action('woocommerce_after_cart_table', 'betheme_child_display_cart_trust_bar', 20);

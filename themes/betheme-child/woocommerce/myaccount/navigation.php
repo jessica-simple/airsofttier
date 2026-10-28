@@ -11,6 +11,7 @@ defined( 'ABSPATH' ) || exit;
 do_action( 'woocommerce_before_account_navigation' );
 
 $csw_icons = array(
+	'notifications'   => '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>',
 	'dashboard'       => '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
 	'orders'          => '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2"/></svg>',
 	'downloads'       => '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
@@ -28,6 +29,7 @@ $wishlist_url  = function_exists( 'YITH_WCWL' ) ? YITH_WCWL()->get_wishlist_url(
 $csw_items     = array(
 	'dashboard'       => array( 'label' => $account_items['dashboard'] ?? __( 'Dashboard', 'woocommerce' ), 'url' => wc_get_account_endpoint_url( 'dashboard' ), 'active' => wc_is_current_account_menu_item( 'dashboard' ) ),
 	'orders'          => array( 'label' => $account_items['orders'] ?? __( 'Orders', 'woocommerce' ), 'url' => wc_get_account_endpoint_url( 'orders' ), 'active' => wc_is_current_account_menu_item( 'orders' ) ),
+	'notifications'   => array( 'label' => $account_items['notifications'] ?? __( 'Notifications', 'betheme-child' ), 'url' => wc_get_account_endpoint_url( 'notifications' ), 'active' => is_wc_endpoint_url( 'notifications' ) ),
 	'wishlist'        => array( 'label' => __( 'Wishlist', 'woocommerce' ), 'url' => wc_get_account_endpoint_url( 'wishlist' ), 'active' => wc_is_current_account_menu_item( 'wishlist' ) ),
 	'coupons'         => array( 'label' => __( 'Coupons', 'woocommerce' ), 'url' => wc_get_account_endpoint_url( 'coupons' ), 'active' => wc_is_current_account_menu_item( 'coupons' ) ),
 	'edit-address'    => array( 'label' => $account_items['edit-address'] ?? __( 'Addresses', 'woocommerce' ), 'url' => wc_get_account_endpoint_url( 'edit-address' ), 'active' => wc_is_current_account_menu_item( 'edit-address' ) ),
@@ -35,6 +37,9 @@ $csw_items     = array(
 	'change-password' => array( 'label' => __( 'Change Password', 'woocommerce' ), 'url' => wc_get_account_endpoint_url( 'edit-account' ), 'active' => false ),
 	'customer-logout' => array( 'label' => $account_items['customer-logout'] ?? __( 'Log Out', 'woocommerce' ), 'url' => wc_get_account_endpoint_url( 'customer-logout' ), 'active' => false ),
 );
+if ( ! isset( $account_items['notifications'] ) ) {
+	unset( $csw_items['notifications'] );
+}
 ?>
 
 <nav class="woocommerce-MyAccount-navigation csw-account-sidebar" aria-label="<?php esc_html_e( 'Account pages', 'woocommerce' ); ?>">
