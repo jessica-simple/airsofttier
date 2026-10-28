@@ -26,10 +26,12 @@ require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/group-buy.php';
 require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-gb-archive.php';
 require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-gb-countdown.php';
 require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-cart-followups.php';
+require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-invalid-cart.php';
 require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-notifications.php';
 
 Airsoft_Product_Manager_Category_Page::init();
 Airsoft_Product_Manager_Cart_Followups::init();
+Airsoft_Product_Manager_Invalid_Cart::init();
 Airsoft_Product_Manager_Notifications::init();
 
 register_activation_hook( AIRSOFT_PRODUCT_MANAGER_FILE, array( 'Airsoft_Product_Manager_Cart_Followups', 'activate' ) );

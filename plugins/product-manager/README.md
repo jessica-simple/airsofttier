@@ -4,6 +4,13 @@ Product Manager adds an admin area for WooCommerce product categories and keeps
 the site's group-buy pricing, shortcodes, cart display, GB Deals archive, and
 countdowns together in one plugin.
 
+## Sold-out cart items
+
+Sold-out products are grouped under **Invalid items** in the cart and can be
+removed individually or all at once. Proceeding to checkout temporarily removes
+them from the order cart; returning to the cart without placing an order restores
+them.
+
 ## Cart follow-ups
 
 Open **Product Manager → Cart Follow-ups** to review inactive WooCommerce carts,
