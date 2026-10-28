@@ -2418,3 +2418,158 @@ padding: 0 20px 20px;
     background: var(--primary) !important;
     color: white !important;
 }
+
+/* Empty cart page */
+.woocommerce-cart .cart-empty {
+    box-sizing: border-box;
+    max-width: 680px;
+    margin: 30px auto 0;
+    padding: 42px 24px 38px;
+    border: 1px solid #e3e5e9;
+    border-radius: 14px;
+    background: #fff;
+    color: #20232a;
+    text-align: center;
+    box-shadow: 0 8px 28px rgba(22, 27, 35, .06);
+}
+
+.woocommerce-cart .cart-empty .cart-empty-icon {
+    display: flex;
+    width: 76px;
+    height: 76px;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background: #f5eeee;
+    color: #8f1f1e;
+    font-size: 34px;
+    line-height: 1;
+}
+
+.woocommerce-cart .cart-empty .cart-empty-icon svg {
+    width: 34px;
+    height: 34px;
+}
+
+.woocommerce-cart .cart-empty > p:last-child {
+    margin: 0;
+    color: #20232a;
+    font-size: clamp(18px, 2vw, 22px);
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+/* Empty cart product recommendations */
+.woocommerce-cart .mfn-cart-empty-section {
+    margin-top: 42px;
+    width: min(100% - 48px, 1320px);
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.woocommerce-cart .mfn-cart-empty-section .mfn-heading-title,
+.woocommerce-cart .mfn-cart-empty-section h2,
+.woocommerce-cart .mfn-cart-empty-section h3 {
+    margin-bottom: 18px;
+    color: #20232a;
+    font-size: clamp(28px, 3vw, 38px);
+    font-weight: 700;
+    letter-spacing: -.035em;
+    line-height: 1.15;
+    text-align: center;
+}
+
+.woocommerce-cart .mfn-cart-empty-section ul.products {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin: 0;
+}
+
+.woocommerce-cart .mfn-cart-empty-section ul.products li.product {
+    box-sizing: border-box;
+    min-width: 0;
+    margin: 0 !important;
+    padding: 0 0 16px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 18px rgba(22, 27, 35, .045);
+    transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.woocommerce-cart .mfn-cart-empty-section ul.products li.product:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(20, 27, 45, .09);
+}
+
+.woocommerce-cart .mfn-cart-empty-section ul.products li.product .product-loop-thumb,
+.woocommerce-cart .mfn-cart-empty-section ul.products li.product .product-loop-thumb .image_wrapper,
+.woocommerce-cart .mfn-cart-empty-section ul.products li.product .product-loop-thumb .image_wrapper > a {
+    display: flex;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #f7f7f8;
+}
+
+.woocommerce-cart .mfn-cart-empty-section ul.products li.product .product-loop-thumb img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+}
+
+.woocommerce-cart .mfn-cart-empty-section ul.products li.product .mfn-li-product-row-title,
+.woocommerce-cart .mfn-cart-empty-section ul.products li.product .mfn-li-product-row-price,
+.woocommerce-cart .mfn-cart-empty-section ul.products li.product .mfn-li-product-row-button {
+    padding-right: 14px;
+    padding-left: 14px;
+}
+
+.woocommerce-cart .mfn-cart-empty-section ul.products li.product .mfn-li-product-row-title {
+    margin-top: 12px;
+}
+
+.woocommerce-cart .mfn-cart-empty-section ul.products li.product .mfn-li-product-row-title a {
+    color: #242832;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.woocommerce-cart .mfn-cart-empty-section ul.products li.product .mfn-li-product-row-title a:hover {
+    color: #8f1f1e;
+}
+
+.woocommerce-cart .mfn-cart-empty-section ul.products li.product .mfn-li-product-row-button .button {
+    width: 100%;
+    min-height: 44px;
+    box-sizing: border-box;
+    border: 1px solid #8f1f1e;
+    border-radius: 6px;
+    background: #8f1f1e;
+    color: #fff;
+    font-weight: 600;
+    text-align: center;
+    transition: background-color .2s ease, border-color .2s ease;
+}
+
+.woocommerce-cart .mfn-cart-empty-section ul.products li.product .mfn-li-product-row-button .button:hover {
+    border-color: #701716;
+    background: #701716;
+}
+
+/* Keep recommendations hidden in the empty state. */
+.woocommerce-cart .mfn-cart-tmpl-empty .mfn-cart-empty-section {
+    display: none !important;
+}
+.wc-block-grid.wp-block-product-new.wp-block-woocommerce-product-new.wc-block-product-new.has-4-columns {
+    display: none;
+}
+
+h2.wp-block-heading.has-text-align-center:nth-child(3) {
+    display: none;
+}

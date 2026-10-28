@@ -165,6 +165,7 @@
     height: 340px !important;
     max-width: 140% !important;
 }
+
 .gb-deal-banner-regular-price.countdown-ended span{
     font-size: 17px !important;
 }
@@ -395,3 +396,50 @@ Footer ul.woocommerce-brands-list li{
     text-align: center;
 }
 }
+
+@media (max-width: 1024px) {
+    .woocommerce-cart .mfn-cart-empty-section ul.products {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767px) {
+    .woocommerce-cart .mfn-cart-empty-section {
+        margin-top: 24px;
+    }
+
+    .woocommerce-cart .mfn-cart-empty-section ul.products {
+        display: flex !important;
+        gap: 12px;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        padding: 2px 2px 12px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .woocommerce-cart .mfn-cart-empty-section ul.products li.product {
+        flex: 0 0 min(72vw, 260px);
+        scroll-snap-align: start;
+    }
+}
+
+@media (max-width: 767px) {
+    .woocommerce-cart .cart-empty {
+        margin-top: 18px;
+        padding: 32px 20px;
+    }
+
+    .woocommerce-cart .mfn-cart-empty-section {
+        width: calc(100% - 32px);
+        margin-top: 32px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .woocommerce-cart .mfn-cart-empty-section ul.products li.product,
+    .woocommerce-cart .mfn-cart-empty-section ul.products li.product .mfn-li-product-row-button .button {
+        transition: none;
+    }
+}
+

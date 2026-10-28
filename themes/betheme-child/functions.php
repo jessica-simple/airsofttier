@@ -58,6 +58,18 @@ add_filter('script_loader_src', function ($src, $handle) {
     return $src;
 }, 10, 2);
 
+// Keep the native side cart available on the cart page so customers can
+// navigate to the full cart from the drawer as well.
+add_action('wp_footer', function () {
+    if (
+        function_exists('is_cart') && is_cart()
+        && function_exists('mfn_opts_get')
+        && mfn_opts_get('shop-sidecart')
+    ) {
+        get_template_part('includes/woocommerce', 'cart');
+    }
+}, 20);
+
 add_action('wp_enqueue_scripts', function () {
     if (! wp_script_is('mfn-woojs', 'enqueued')) {
         return;
@@ -78,6 +90,30 @@ add_action('wp_enqueue_scripts', function () {
         filemtime(get_stylesheet_directory() . '/js/woocommerce.js'),
         true
     );
+
+    if (function_exists('mfn_opts_get') && mfn_opts_get('shop-sidecart')) {
+        wp_add_inline_script(
+            'betheme-child-woocommerce',
+            '(function ($) {
+                function updateCartDrawerActions() {
+                    var $count = $(".header-cart-count").first();
+                    if (!$count.length) return;
+
+                    var isEmpty = (parseInt($count.text(), 10) || 0) === 0;
+                    $(".mfn-ch-footer-buttons").each(function () {
+                        var $buttons = $(this);
+                        $buttons.show();
+                        $buttons.find(".button_full_width.alt").toggle(!isEmpty);
+                        $buttons.find(".mfn-child-view-cart").show();
+                    });
+                }
+
+                $(document).on("wc_fragments_refreshed", updateCartDrawerActions);
+                $(updateCartDrawerActions);
+            }(jQuery));',
+            'after'
+        );
+    }
 }, 20);
 
 add_action('wp_enqueue_scripts', function () {
