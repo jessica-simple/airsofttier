@@ -30,6 +30,7 @@ class Airsoft_Product_Manager_Reseller_Portal {
  public static function assets() {
   if ( ! self::is_page( 'login' ) && ! self::is_page( 'register' ) && ! self::is_page( 'portal' ) ) { return; }
   wp_enqueue_style( 'airsoft-reseller', AIRSOFT_PRODUCT_MANAGER_URL . 'assets/css/reseller.css', array(), filemtime( AIRSOFT_PRODUCT_MANAGER_DIR . 'assets/css/reseller.css' ) );
+  if ( self::is_page( 'portal' ) ) { wp_enqueue_style( 'dashicons' ); }
  }
 
  public static function can_purchase( $allowed, $product ) {
@@ -160,7 +161,7 @@ class Airsoft_Product_Manager_Reseller_Portal {
   $id = wp_insert_user( array( 'user_login' => $login, 'user_email' => $email, 'user_pass' => $password, 'display_name' => $business, 'role' => self::APPLICANT_ROLE, 'meta_input' => array( '_airsoft_account_type' => 'reseller', '_airsoft_reseller_application' => 'pending', '_airsoft_reseller_business' => $business, '_airsoft_reseller_details' => $details ) ) );
   if ( is_wp_error( $id ) ) { return $id; }
   Airsoft_Product_Manager_Reseller_Emails::send( get_option( 'admin_email' ), 'New reseller application', 'Review the separate reseller account under Product Manager > Resellers.' );
-  Airsoft_Product_Manager_Reseller_Emails::send( $email, 'Reseller application received', 'Your application is pending approval. Sign in using your email at ' . self::url( 'login' ) );
+  Airsoft_Product_Manager_Reseller_Emails::send( $email, 'Reseller application received', 'Your application is pending approval. Sign in using your email at ' . self::url( 'login' ), 'registration' );
   return $id;
  }
 
@@ -200,53 +201,47 @@ class Airsoft_Product_Manager_Reseller_Portal {
  }
 
  public static function portal() {
-  ob_start(); echo '<div class="woocommerce airsoft-reseller-portal"><h2>Reseller Portal</h2>';
-  if ( ! is_user_logged_in() ) { echo '<p><a href="' . esc_url( self::url( 'login' ) ) . '">Sign in as a reseller</a></p></div>'; return ob_get_clean(); }
+  ob_start(); echo '<div class="woocommerce airsoft-reseller-portal">';
+  if ( ! is_user_logged_in() ) { echo '<section class="airsoft-panel"><h2>Reseller Portal</h2><p><a href="' . esc_url( self::url( 'login' ) ) . '">Sign in as a reseller</a></p></section></div>'; return ob_get_clean(); }
   if ( self::member_notice() ) { echo '</div>'; return ob_get_clean(); }
-  wc_print_notices();
-  echo '<p><a href="' . esc_url( wp_logout_url( self::url( 'login' ) ) ) . '">Log out</a></p>';
   if ( ! Airsoft_Product_Manager_Resellers::approved() ) {
+   wc_print_notices();
    $status = get_user_meta( get_current_user_id(), '_airsoft_reseller_application', true );
-   echo '<p>Application status: ' . esc_html( $status ? $status : 'Awaiting review' ) . '. Reseller purchasing and selling require admin approval.</p></div>'; return ob_get_clean();
+   echo '<section class="airsoft-panel"><h2>Reseller Portal</h2><p>Application status: ' . esc_html( $status ? $status : 'Awaiting review' ) . '. Reseller purchasing and selling require admin approval.</p><p><a href="' . esc_url( wp_logout_url( self::url( 'login' ) ) ) . '">Log out</a></p></section></div>'; return ob_get_clean();
   }
-  $section = sanitize_key( wp_unslash( $_GET['section'] ?? 'products' ) );
-  $tabs = array( 'products' => 'My products', 'sales' => 'Sales and earnings', 'purchases' => 'My purchases', 'billing' => 'Billing address', 'shipping' => 'Shipping address', 'profile' => 'Account details' );
-  if ( class_exists( 'Airsoft_Product_Manager_Notifications' ) ) { $tabs['notifications'] = 'Notifications'; }
-  echo '<nav aria-label="Reseller pages">';
-  foreach ( $tabs as $key => $label ) { echo '<a style="display:inline-block;margin:0 1em 1em 0" href="' . esc_url( add_query_arg( 'section', $key, self::url() ) ) . '"' . ( $key === $section ? ' aria-current="page"' : '' ) . '>' . esc_html( $label ) . '</a>'; }
-  echo '</nav>';
-  if ( 'sales' === $section ) { Airsoft_Product_Manager_Reseller_Orders::render(); }
-  elseif ( 'purchases' === $section ) { self::purchases(); }
-  elseif ( in_array( $section, array( 'billing', 'shipping' ), true ) ) { WC_Shortcode_My_Account::edit_address( $section ); }
-  elseif ( 'profile' === $section ) { WC_Shortcode_My_Account::edit_account(); }
-  elseif ( 'notifications' === $section && class_exists( 'Airsoft_Product_Manager_Notifications' ) ) { Airsoft_Product_Manager_Notifications::render(); }
-  else { Airsoft_Product_Manager_Reseller_Products::render(); }
+  require_once __DIR__ . '/class-product-manager-reseller-dashboard.php';
+  $section = sanitize_key( wp_unslash( $_GET['section'] ?? 'overview' ) );
+  if ( ! empty( $_GET['edit_product'] ) && in_array( $section, array( 'overview', 'products' ), true ) ) { $section = 'product-edit'; }
+  Airsoft_Product_Manager_Reseller_Dashboard::render( $section );
   echo '</div>'; return ob_get_clean();
  }
 
- private static function purchases() {
+ public static function purchases() {
+  if ( ! self::is_reseller_account() || ! Airsoft_Product_Manager_Resellers::approved() ) { return; }
+  echo '<section class="airsoft-panel">';
   $id = absint( $_GET['view_order'] ?? 0 );
   if ( $id ) {
    $order = wc_get_order( $id );
-   if ( ! $order || (int) $order->get_customer_id() !== get_current_user_id() ) { echo '<p>This purchase is unavailable.</p>'; return; }
-   WC_Shortcode_My_Account::view_order( $id ); return;
+   if ( ! $order || (int) $order->get_customer_id() !== get_current_user_id() ) { echo '<p>This purchase is unavailable.</p></section>'; return; }
+   WC_Shortcode_My_Account::view_order( $id ); echo '</section>'; return;
   }
   $page = max( 1, absint( $_GET['purchase_page'] ?? 1 ) );
   $result = wc_get_orders( array( 'customer_id' => get_current_user_id(), 'type' => 'shop_order', 'limit' => 20, 'page' => $page, 'paginate' => true ) );
-  echo '<h3>My purchases</h3><ul>';
+  echo '<h3>My purchases</h3><div class="airsoft-table-wrap"><table class="airsoft-table"><thead><tr><th>Order</th><th>Status</th><th>Total</th><th>Action</th></tr></thead><tbody>';
   foreach ( $result->orders as $order ) {
-   echo '<li><a href="' . esc_url( add_query_arg( array( 'section' => 'purchases', 'view_order' => $order->get_id() ), self::url() ) ) . '">Order #' . esc_html( $order->get_order_number() ) . '</a> — ' . esc_html( wc_get_order_status_name( $order->get_status() ) ) . ' — ' . wp_kses_post( $order->get_formatted_order_total() ) . '</li>';
+   echo '<tr><td>#' . esc_html( $order->get_order_number() ) . '</td><td><span class="airsoft-badge">' . esc_html( wc_get_order_status_name( $order->get_status() ) ) . '</span></td><td>' . wp_kses_post( $order->get_formatted_order_total() ) . '</td><td><a class="airsoft-button" href="' . esc_url( add_query_arg( array( 'section' => 'purchases', 'view_order' => $order->get_id() ), self::url() ) ) . '">View order</a></td></tr>';
   }
-  echo '</ul>';
-  if ( ! $result->orders ) { echo '<p>No purchases yet.</p>'; }
-  if ( $page > 1 ) { echo '<a href="' . esc_url( add_query_arg( array( 'section' => 'purchases', 'purchase_page' => $page - 1 ), self::url() ) ) . '">Previous</a> '; }
-  if ( $page < $result->max_num_pages ) { echo '<a href="' . esc_url( add_query_arg( array( 'section' => 'purchases', 'purchase_page' => $page + 1 ), self::url() ) ) . '">Next</a>'; }
+  if ( ! $result->orders ) { echo '<tr><td colspan="4">No purchases yet.</td></tr>'; }
+  echo '</tbody></table></div><nav class="airsoft-pagination" aria-label="Purchase pages">';
+  if ( $page > 1 ) { echo '<a class="airsoft-button" href="' . esc_url( add_query_arg( array( 'section' => 'purchases', 'purchase_page' => $page - 1 ), self::url() ) ) . '">Previous</a> '; }
+  if ( $page < $result->max_num_pages ) { echo '<a class="airsoft-button" href="' . esc_url( add_query_arg( array( 'section' => 'purchases', 'purchase_page' => $page + 1 ), self::url() ) ) . '">Next</a>'; }
+  echo '</nav></section>';
  }
 
  /** Keep WooCommerce's validated profile/address forms inside the reseller portal. */
  public static function endpoint_url( $url, $endpoint, $value, $permalink ) {
   if ( ! is_user_logged_in() || ! self::is_reseller_account() ) { return $url; }
-  $sections = array( 'dashboard' => 'products', 'orders' => 'purchases', 'view-order' => 'purchases', 'edit-address' => 'billing', 'edit-account' => 'profile', 'reseller' => 'products' );
+  $sections = array( 'dashboard' => 'overview', 'orders' => 'purchases', 'view-order' => 'purchases', 'edit-address' => 'billing', 'edit-account' => 'profile', 'reseller' => 'overview' );
   if ( ! isset( $sections[ $endpoint ] ) ) { return $url; }
   $args = array( 'section' => $sections[ $endpoint ] );
   if ( 'view-order' === $endpoint ) { $args['view_order'] = absint( $value ); }

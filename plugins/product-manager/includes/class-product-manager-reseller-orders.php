@@ -66,13 +66,93 @@ class Airsoft_Product_Manager_Reseller_Orders {
   }
   return false;
  }
- private static function rows( $owner = 0 ) {
+ private static function rows( $owner = 0, $page = null ) {
   global $wpdb;
-  $page = max( 1, absint( $_GET['orders_page'] ?? 1 ) );
+  $page = max( 1, absint( null === $page ? ( $_GET['orders_page'] ?? 1 ) : $page ) );
   $where = "m.meta_key = '_airsoft_reseller_owner'";
   if ( $owner ) { $where .= $wpdb->prepare( ' AND m.meta_value = %s', (string) $owner ); }
   // Order item tables are shared by legacy storage and HPOS. Order data uses CRUD.
   return $wpdb->get_results( $wpdb->prepare( "SELECT DISTINCT i.order_id, i.order_item_id FROM {$wpdb->prefix}woocommerce_order_items i INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta m ON i.order_item_id = m.order_item_id WHERE $where ORDER BY i.order_item_id DESC LIMIT %d OFFSET %d", 21, ( $page - 1 ) * 20 ) );
+ }
+
+ /** Data for the signed-in seller only; purchase orders are handled separately. */
+ private static function portal_entry( $order, $item, $paid = null ) {
+  if ( ! $order || 'shop_order' !== $order->get_type() || ! $item || (int) $item->get_order_id() !== $order->get_id() || (int) $item->get_meta( '_airsoft_reseller_owner' ) !== get_current_user_id() ) { return false; }
+  if ( null === $paid ) { $paid = self::paid( $item->get_id() ); }
+  $earned = self::earning( $order, $item );
+  $tracking = $item->get_meta( '_airsoft_tracking' );
+  $hold = self::needs_reconciliation( $order );
+  $quantity = (float) $item->get_quantity() - abs( (float) $order->get_qty_refunded_for_item( $item->get_id() ) );
+  $refunded = (float) $item->get_total() > 0 && abs( (float) $order->get_total_refunded_for_item( $item->get_id() ) ) >= (float) $item->get_total();
+  $product = $item->get_product();
+  $physical = ! $product || $product->needs_shipping();
+  return array( 'order' => $order, 'item' => $item, 'earned' => $earned, 'paid' => $paid, 'hold' => $hold, 'tracking' => $tracking, 'eligible' => ! $hold && $order->is_paid() && $order->has_status( 'completed' ), 'can_ship' => $physical && $quantity > 0 && ! $refunded && $order->is_paid() && $order->has_status( array( 'processing', 'completed' ) ), 'needs_shipment' => $physical && $quantity > 0 && ! $refunded && ! $tracking && $order->is_paid() && $order->has_status( 'processing' ) );
+ }
+
+ public static function portal_page( $page = 1 ) {
+  $result = array( 'items' => array(), 'more' => false );
+  if ( ! Airsoft_Product_Manager_Resellers::approved() || ! get_current_user_id() ) { return $result; }
+  $rows = (array) self::rows( get_current_user_id(), $page );
+  $result['more'] = count( $rows ) > 20;
+  foreach ( array_slice( $rows, 0, 20 ) as $row ) {
+   $order = wc_get_order( $row->order_id );
+   $entry = self::portal_entry( $order, $order ? $order->get_item( $row->order_item_id ) : false );
+   if ( $entry ) { $result['items'][] = $entry; }
+  }
+  return $result;
+ }
+
+ public static function portal_order( $id ) {
+  $entries = array();
+  if ( ! Airsoft_Product_Manager_Resellers::approved() || ! get_current_user_id() ) { return $entries; }
+  $order = wc_get_order( absint( $id ) );
+  if ( ! $order || 'shop_order' !== $order->get_type() ) { return $entries; }
+  foreach ( $order->get_items() as $item ) {
+   $entry = self::portal_entry( $order, $item );
+   if ( $entry ) { $entries[] = $entry; }
+  }
+  return $entries;
+ }
+
+ public static function portal_summary() {
+  $summary = array( 'to_ship' => 0, 'eligible' => array(), 'pending' => array(), 'paid' => array(), 'adjustments' => array(), 'currency_review' => 0, 'attention' => array() );
+  $owner = get_current_user_id();
+  if ( ! $owner || ! Airsoft_Product_Manager_Resellers::approved() ) { return $summary; }
+  global $wpdb;
+  $cursor = PHP_INT_MAX;
+  $pending_orders = array();
+  $last_order = null;
+  // Keyset batches keep memory bounded. Use shared item tables and order CRUD
+  // for HPOS compatibility; load payout records in the same batch query.
+  do {
+   $table = self::table();
+   $rows = (array) $wpdb->get_results( $wpdb->prepare( "SELECT DISTINCT i.order_id, i.order_item_id, p.item_id AS payout_item_id, p.amount AS payout_amount, p.currency AS payout_currency, p.reference AS payout_reference, p.paid_at AS payout_date FROM {$wpdb->prefix}woocommerce_order_items i INNER JOIN {$wpdb->prefix}woocommerce_order_itemmeta m ON i.order_item_id = m.order_item_id LEFT JOIN $table p ON p.item_id = i.order_item_id WHERE m.meta_key = '_airsoft_reseller_owner' AND m.meta_value = %s AND i.order_item_id < %d ORDER BY i.order_item_id DESC LIMIT 200", (string) $owner, $cursor ) );
+   foreach ( $rows as $row ) {
+    $cursor = min( $cursor, (int) $row->order_item_id );
+    if ( ! $last_order || $last_order->get_id() !== (int) $row->order_id ) { $last_order = wc_get_order( $row->order_id ); }
+    $paid = ! empty( $row->payout_item_id ) ? (object) array( 'amount' => $row->payout_amount, 'currency' => $row->payout_currency, 'reference' => $row->payout_reference, 'paid_at' => $row->payout_date ) : false;
+    $entry = self::portal_entry( $last_order, $last_order ? $last_order->get_item( $row->order_item_id ) : false, $paid );
+    if ( ! $entry ) { continue; }
+    $currency = $last_order->get_currency();
+    if ( $entry['needs_shipment'] ) {
+     $pending_orders[$row->order_id] = true;
+     if ( count( $summary['attention'] ) < 5 ) { $summary['attention'][] = $entry; }
+    }
+    if ( $paid ) {
+     $summary['paid'][$paid->currency] = ( $summary['paid'][$paid->currency] ?? 0 ) + (float) $paid->amount;
+     if ( $paid->currency !== $currency ) { $summary['currency_review']++; }
+     else {
+      $delta = $entry['earned'] - (float) $paid->amount;
+      if ( abs( $delta ) > 0.00001 ) { $summary['adjustments'][$currency] = ( $summary['adjustments'][$currency] ?? 0 ) + $delta; }
+     }
+    } elseif ( $entry['earned'] > 0 && $last_order->is_paid() ) {
+     $bucket = $entry['eligible'] ? 'eligible' : 'pending';
+     $summary[$bucket][$currency] = ( $summary[$bucket][$currency] ?? 0 ) + $entry['earned'];
+    }
+   }
+  } while ( count( $rows ) === 200 );
+  $summary['to_ship'] = count( $pending_orders );
+  return $summary;
  }
  public static function notify( $order_id ) {
   $order = wc_get_order( $order_id );
@@ -132,7 +212,7 @@ class Airsoft_Product_Manager_Reseller_Orders {
  public static function ship() {
   $order = wc_get_order( absint( $_POST['order_id'] ?? 0 ) );
   $item = $order ? $order->get_item( absint( $_POST['item_id'] ?? 0 ) ) : false;
-  if ( ! $order || ! $item || ! $order->is_paid() || ! $order->has_status( array( 'processing', 'completed' ) ) || (int) $item->get_meta( '_airsoft_reseller_owner' ) !== get_current_user_id() ) { throw new Exception( 'You cannot update this order.' ); }
+  if ( ! $order || ! $item || (int) $item->get_order_id() !== $order->get_id() || ! $order->is_paid() || ! $order->has_status( array( 'processing', 'completed' ) ) || (int) $item->get_meta( '_airsoft_reseller_owner' ) !== get_current_user_id() ) { throw new Exception( 'You cannot update this order.' ); }
   $tracking = sanitize_text_field( wp_unslash( $_POST['tracking'] ?? '' ) );
   if ( ! $tracking || strlen( $tracking ) > 200 ) { throw new Exception( 'Enter a carrier and tracking number (maximum 200 characters).' ); }
   $item->update_meta_data( '_airsoft_tracking', $tracking );
@@ -172,7 +252,7 @@ class Airsoft_Product_Manager_Reseller_Orders {
   $order = wc_get_order( absint( $_POST['order_id'] ?? 0 ) );
   $item = $order ? $order->get_item( $id ) : false;
   $reference = sanitize_text_field( wp_unslash( $_POST['reference'] ?? '' ) );
-  if ( ! $order || ! $item || ! $item->get_meta( '_airsoft_reseller_owner' ) || ! $order->is_paid() || ! $order->has_status( 'completed' ) || self::needs_reconciliation( $order ) || ! $reference || strlen( $reference ) > 200 ) { wp_die( 'Invalid payout or refund reconciliation required.' ); }
+  if ( ! $order || ! $item || (int) $item->get_order_id() !== $order->get_id() || ! $item->get_meta( '_airsoft_reseller_owner' ) || ! $order->is_paid() || ! $order->has_status( 'completed' ) || self::needs_reconciliation( $order ) || ! $reference || strlen( $reference ) > 200 ) { wp_die( 'Invalid payout or refund reconciliation required.' ); }
   $amount = self::earning( $order, $item );
   if ( $amount <= 0 || abs( $amount - (float) ( $_POST['amount'] ?? -1 ) ) > 0.00001 ) { wp_die( 'Earnings changed. Refresh and review this order before recording payment.' ); }
   global $wpdb;

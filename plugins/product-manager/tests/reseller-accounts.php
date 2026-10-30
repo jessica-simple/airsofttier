@@ -2,7 +2,7 @@
 /** Standalone account separation and portal authorization checks. */
 if ( PHP_SAPI !== 'cli' ) { exit; }
 define( 'ABSPATH', __DIR__ . '/' );
-$users = array(); $metadata = array(); $options = array(); $current = 0;
+$users = array(); $metadata = array(); $options = array(); $current = 0; $can_manage = true;
 $page_key = ''; $member_page = false; $endpoint = ''; $signons = 0; $pages = array(); $created_pages = 0;
 class WP_Error {
  public $errors = array();
@@ -19,6 +19,8 @@ class TestUser {
 }
 class Redirected extends Exception {}
 function is_wp_error( $v ) { return $v instanceof WP_Error; }
+function wp_die( $message ) { throw new Exception( $message ); }
+function check_admin_referer( $action ) { if ( 'bulk-airsoft_reseller_applications' !== $action || 'valid' !== ( $_POST['_wpnonce'] ?? '' ) ) { throw new Exception( 'Invalid review nonce' ); } }
 function is_user_logged_in() { global $current; return $current > 0; }
 function get_current_user_id() { global $current; return $current; }
 function get_userdata( $id ) { global $users; return $users[ $id ] ?? false; }
@@ -34,6 +36,10 @@ function email_exists( $email ) { return (bool) get_user_by( 'email', $email ); 
 function wp_unslash( $v ) { return stripslashes( $v ); }
 function wp_generate_password( $len, $special ) { return 'generatedname1234'; }
 function apply_filters( $hook, $value ) { return $value; }
+function add_filter( $hook, $callback, $priority = 10 ) {}
+function remove_filter( $hook, $callback, $priority = 10 ) {}
+function add_action( $hook, $callback, $priority = 10 ) {}
+function remove_action( $hook, $callback, $priority = 10 ) {}
 function wp_insert_user( $data ) {
  global $users, $metadata, $last_created;
  $last_created = $data; $id = count( $users ) + 100;
@@ -46,9 +52,10 @@ function update_option( $key, $value, $autoload ) { global $options; $options[$k
 function wp_mail( $to, $subject, $body ) { return true; }
 function absint( $v ) { return abs( (int) $v ); }
 function home_url( $path ) { return 'https://example.test' . $path; }
+function admin_url( $path ) { return 'https://example.test/wp-admin/' . $path; }
 function get_post_status( $id ) { global $pages; return isset( $pages[$id] ) ? 'publish' : false; }
 function get_permalink( $id ) { return home_url( '/page-' . $id . '/' ); }
-function current_user_can( $cap ) { return 'manage_options' === $cap; }
+function current_user_can( $cap ) { global $can_manage; return 'manage_options' === $cap || ( 'manage_woocommerce' === $cap && $can_manage ); }
 function wp_insert_post( $data, $error ) { global $pages, $created_pages; $id = 1000 + ++$created_pages; $pages[$id] = $data; return $id; }
 function get_post() { global $page_key; return $page_key ? (object) array( 'post_content' => '[airsoft_reseller_' . $page_key . ']' ) : null; }
 function is_page( $id ) { return false; }
@@ -151,4 +158,34 @@ $_GET = array( 'view_order' => 77 ); $current = 2;
 $method = new ReflectionMethod( 'Airsoft_Product_Manager_Reseller_Portal', 'purchases' ); $method->setAccessible( true );
 ob_start(); $method->invoke( null ); $html = ob_get_clean();
 verify( false !== strpos( $html, 'unavailable' ), 'Reseller cannot view another account purchase by changing ID' );
+$metadata[1]['_airsoft_reseller_application'] = 'pending';
+$metadata[3]['_airsoft_reseller_application'] = 'pending';
+$result = Airsoft_Product_Manager_Resellers::review_users( array( 3, 1, 3, 999 ), 'approved' );
+verify( 1 === $result['reviewed'] && 2 === $result['skipped'], 'Bulk approval deduplicates IDs and skips legacy members and missing users' );
+verify( array( 'customer' ) === $users[1]->roles && 'pending' === $metadata[1]['_airsoft_reseller_application'], 'Bulk review never converts a member account' );
+verify( array( 'airsoft_reseller' ) === $users[3]->roles && 'approved' === $metadata[3]['_airsoft_reseller_application'], 'Bulk approval updates approved role and application status' );
+$result = Airsoft_Product_Manager_Resellers::review_users( array( 3 ), 'approved' );
+verify( 0 === $result['reviewed'] && 1 === $result['skipped'], 'Repeated bulk approval skips already updated users' );
+$result = Airsoft_Product_Manager_Resellers::review_users( array( 3 ), 'rejected' );
+verify( 1 === $result['reviewed'] && array( 'airsoft_reseller_applicant' ) === $users[3]->roles, 'Bulk revocation preserves separate reseller identity' );
+$can_manage = false;
+try { Airsoft_Product_Manager_Resellers::review_users( array( 3 ), 'approved' ); verify( false, 'Unprivileged bulk approval accepted' ); }
+catch ( Exception $e ) { verify( 'Access denied.' === $e->getMessage(), 'Bulk approval requires management permission' ); }
+$can_manage = true;
+$_SERVER['REQUEST_METHOD'] = 'POST';
+$_POST = array( 'review_application' => 'approved:3', 'application_ids' => array( 1 ), '_wpnonce' => 'invalid' );
+try { Airsoft_Product_Manager_Resellers::table_actions(); verify( false, 'Review bypassed nonce' ); }
+catch ( Exception $e ) { verify( 'Invalid review nonce' === $e->getMessage() && array( 'airsoft_reseller_applicant' ) === $users[3]->roles, 'Invalid nonce prevents account changes' ); }
+$_POST['_wpnonce'] = 'valid';
+$_POST['application_status'] = 'pending';
+$_POST['s'] = 'applicant';
+try { Airsoft_Product_Manager_Resellers::table_actions(); verify( false, 'Review redirect missing' ); }
+catch ( Redirected $e ) { verify( false !== strpos( $e->getMessage(), 'application_status=pending' ) && false !== strpos( $e->getMessage(), 's=applicant' ), 'Row action preserves current filters in redirect' ); }
+verify( array( 'airsoft_reseller' ) === $users[3]->roles && array( 'customer' ) === $users[1]->roles, 'Row action reviews only the clicked account' );
+$_POST = array( 'action' => '-1', 'action2' => 'rejected', 'application_ids' => array( 3 ), '_wpnonce' => 'valid' );
+try { Airsoft_Product_Manager_Resellers::table_actions(); }
+catch ( Redirected $e ) { verify( array( 'airsoft_reseller_applicant' ) === $users[3]->roles, 'Bottom bulk selector processes the selected action' ); }
+$_POST = array( 'action' => '-1', 'paged' => 3 );
+try { Airsoft_Product_Manager_Resellers::table_actions(); }
+catch ( Redirected $e ) { verify( false !== strpos( $e->getMessage(), 'paged=3' ), 'Native page input redirects to requested page without changing accounts' ); }
 echo "PASS: $checks account separation checks\n";

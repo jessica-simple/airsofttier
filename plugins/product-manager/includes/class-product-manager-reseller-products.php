@@ -13,26 +13,52 @@ class Airsoft_Product_Manager_Reseller_Products {
   return $owner && ( ! Airsoft_Product_Manager_Resellers::approved( $owner ) || $owner === get_current_user_id() ) ? false : $allowed;
  }
  public static function render() {
+  if ( ! Airsoft_Product_Manager_Resellers::approved() ) { return; }
   $page = max( 1, absint( $_GET['product_page'] ?? 1 ) );
   $products = wc_get_products( array( 'limit' => 20, 'page' => $page, 'paginate' => true, 'status' => array( 'publish', 'pending', 'draft' ), 'meta_key' => '_airsoft_reseller_owner', 'meta_value' => get_current_user_id(), 'orderby' => 'date', 'order' => 'DESC' ) );
-  echo '<h3>My products</h3><ul>';
+  echo '<section class="airsoft-panel"><div class="airsoft-panel-heading"><h3>Your listings</h3><span class="airsoft-muted">' . absint( $products->total ) . ' products</span></div><div class="airsoft-table-wrap"><table class="airsoft-table"><thead><tr><th>Product</th><th>Normal price</th><th>Reseller price</th><th>Stock</th><th>Status</th><th>Action</th></tr></thead><tbody>';
   foreach ( $products->products as $product ) {
-   echo '<li>' . esc_html( $product->get_name() ) . ' — ' . esc_html( $product->get_status() ) . ' <a href="' . esc_url( add_query_arg( 'edit_product', $product->get_id(), Airsoft_Product_Manager_Resellers::url() ) ) . '">Edit</a></li>';
+   if ( (int) $product->get_meta( '_airsoft_reseller_owner' ) !== get_current_user_id() ) { continue; }
+   $labels = array( 'publish' => 'Live', 'pending' => 'Pending review', 'draft' => 'Draft' );
+   $normal = $product->get_regular_price( 'edit' );
+   $special = $product->get_meta( '_airsoft_reseller_price' );
+   echo '<tr><td><div class="airsoft-product-name">' . wp_kses_post( $product->get_image( array( 40, 40 ) ) ) . '<span>' . esc_html( $product->get_name() ) . '</span></div></td><td>' . ( '' !== $normal ? wp_kses_post( wc_price( $normal ) ) : '—' ) . '</td><td>' . ( '' !== $special ? wp_kses_post( wc_price( $special ) ) : 'Not set' ) . '</td><td>' . esc_html( $product->get_manage_stock() ? $product->get_stock_quantity() : 'Not tracked' ) . '</td><td><span class="airsoft-badge ' . ( 'publish' === $product->get_status() ? 'airsoft-badge-good' : 'airsoft-badge-wait' ) . '">' . esc_html( $labels[$product->get_status()] ?? $product->get_status() ) . '</span></td><td>';
+   if ( $product->is_type( 'simple' ) ) { echo '<a class="airsoft-button" href="' . esc_url( add_query_arg( array( 'section' => 'product-edit', 'edit_product' => $product->get_id() ), Airsoft_Product_Manager_Resellers::url() ) ) . '">Edit</a>'; }
+   else { echo '<span class="airsoft-muted">Contact admin to edit variations</span>'; }
+   echo '</td></tr>';
   }
-  echo '</ul>';
-  for ( $p = 1; $p <= $products->max_num_pages; $p++ ) { echo '<a href="' . esc_url( add_query_arg( 'product_page', $p, Airsoft_Product_Manager_Resellers::url() ) ) . '">' . absint( $p ) . '</a> '; }
+  if ( ! $products->products ) { echo '<tr><td colspan="6">No products yet. Add your first product to submit it for approval.</td></tr>'; }
+  echo '</tbody></table></div><p class="airsoft-muted airsoft-panel-note">New listings and edits require admin approval.</p><nav class="airsoft-pagination" aria-label="Product pages">';
+  if ( $page > 1 ) { echo '<a class="airsoft-button" href="' . esc_url( add_query_arg( array( 'section' => 'products', 'product_page' => $page - 1 ), Airsoft_Product_Manager_Resellers::url() ) ) . '">Previous</a>'; }
+  if ( $page < $products->max_num_pages ) { echo '<a class="airsoft-button" href="' . esc_url( add_query_arg( array( 'section' => 'products', 'product_page' => $page + 1 ), Airsoft_Product_Manager_Resellers::url() ) ) . '">Next</a>'; }
+  echo '</nav></section>';
+ }
+
+ public static function counts() {
+  $counts = array( 'publish' => 0, 'pending' => 0, 'draft' => 0 );
+  if ( ! Airsoft_Product_Manager_Resellers::approved() ) { return $counts; }
+  foreach ( array_keys( $counts ) as $status ) {
+   $result = wc_get_products( array( 'limit' => 1, 'paginate' => true, 'return' => 'ids', 'status' => $status, 'meta_key' => '_airsoft_reseller_owner', 'meta_value' => get_current_user_id() ) );
+   $counts[$status] = (int) $result->total;
+  }
+  return $counts;
+ }
+
+ public static function form() {
+  if ( ! Airsoft_Product_Manager_Resellers::approved() ) { return; }
   $id = absint( $_GET['edit_product'] ?? 0 );
   $product = $id ? wc_get_product( $id ) : false;
   if ( $id && ( ! $product || (int) $product->get_meta( '_airsoft_reseller_owner' ) !== get_current_user_id() || ! $product->is_type( 'simple' ) ) ) { echo '<p>This product cannot be edited here.</p>'; return; }
-  echo '<h3>' . ( $product ? 'Edit product' : 'Add product' ) . '</h3><p>Submissions and edits require admin approval. Editing a live product takes it offline until approved. Shipping uses the site’s checkout rates.</p><form method="post" enctype="multipart/form-data">';
+  echo '<section class="airsoft-panel"><h3>Product details</h3><p class="airsoft-muted airsoft-panel-note">Editing a live product takes it offline until approved. Shipping uses the site’s checkout rates.</p><form class="airsoft-product-form" method="post" enctype="multipart/form-data">';
   wp_nonce_field( 'airsoft_reseller', 'airsoft_nonce' );
   echo '<input type="hidden" name="product_id" value="' . absint( $id ) . '">';
+  echo '<div class="airsoft-form-grid">';
   Airsoft_Product_Manager_Resellers::field( 'Product name', 'product_name', $product ? $product->get_name() : '', 'text', 'required maxlength="200"' );
   echo '<p><label>Description<br><textarea name="description" required>' . esc_textarea( $product ? $product->get_description() : '' ) . '</textarea></label></p>';
   Airsoft_Product_Manager_Resellers::field( 'Normal price', 'normal_price', $product ? $product->get_regular_price( 'edit' ) : '', 'number', 'required min="0" step="any"' );
   Airsoft_Product_Manager_Resellers::field( 'Reseller price (optional)', 'reseller_price', $product ? $product->get_meta( '_airsoft_reseller_price' ) : '', 'number', 'min="0" step="any"' );
   Airsoft_Product_Manager_Resellers::field( 'Stock quantity', 'stock', $product ? $product->get_stock_quantity() : 0, 'number', 'required min="0" step="1"' );
-  echo '<p><label>Product photo (JPEG, PNG or WebP, maximum 5 MB)<br><input type="file" name="product_photo" accept="image/jpeg,image/png,image/webp"></label></p><button name="airsoft_action" value="save_product">Submit for approval</button></form>';
+  echo '<p><label>Product photo (JPEG, PNG or WebP, maximum 5 MB)<br><input type="file" name="product_photo" accept="image/jpeg,image/png,image/webp"></label></p></div><div class="airsoft-form-actions"><a class="airsoft-button" href="' . esc_url( add_query_arg( 'section', 'products', Airsoft_Product_Manager_Resellers::url() ) ) . '">Cancel</a><button class="airsoft-button airsoft-button-primary" name="airsoft_action" value="save_product">Submit for approval</button></div></form></section>';
  }
  public static function save() {
   $id = absint( $_POST['product_id'] ?? 0 );

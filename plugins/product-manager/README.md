@@ -53,6 +53,14 @@ and selling inside the **Reseller Portal**. Admins review applications under
 separate account type and cannot buy or sell until approved. Revoked sellers'
 listings cannot be purchased. Resellers cannot buy their own items.
 
+The **Resellers** admin screen uses the native WordPress Users-style list table:
+status tabs with counts, username/name/email search, sortable columns, 25 rows per
+page, expandable application details, and individual or bulk approve/reject/revoke
+actions. Only separate reseller identities can be selected or reviewed. Legacy
+member applications remain visible for reference. Review actions require a valid
+nonce and WooCommerce management permission; repeated approvals skip unchanged
+accounts, and search/status filters are preserved after a review.
+
 ### Setup and operation
 
 1. Deploy the complete Product Manager plugin folder and visit WordPress admin
@@ -72,11 +80,11 @@ listings cannot be purchased. Resellers cannot buy their own items.
    **Product Manager → Resellers**. Member sign-in rejects reseller accounts,
    and reseller sign-in rejects member accounts. A member wishing to apply must
    log out and register a second identity with a different email.
-4. Approved resellers submit products through **Reseller Portal → My products**. Review pending
+4. Approved resellers submit products through **Reseller Portal → My products → Add product**. Review pending
    products in WooCommerce **Products**, then publish approved listings.
 5. Resellers receive email notifications when orders enter a paid processing or
-   completed state. **Sales and earnings** shows only their order items, their earnings,
-   and the delivery address needed to fulfil the order. They add carrier/tracking
+   completed state. **Customer orders** shows only their order items and
+   the delivery address needed to fulfil the order. They add carrier/tracking
    details per order item; customers see these in their order and customer notes.
 6. Admins review fulfilment and mark the WooCommerce order completed. Resellers
    cannot complete a whole order that may contain other sellers' items.
@@ -95,9 +103,38 @@ are preserved. Unrelated WordPress emails retain their current sender. Use an
 address authorised by your mail provider. An SMTP plugin configured to force its
 sender may override these settings.
 
+For registration email issues, submit a registration and inspect **Registration
+email check** on the WooCommerce Emails screen. Registration confirmations have
+their own record so later cart follow-ups cannot overwrite them. Use **Send
+registration sender check to my email** to test the same sending path without
+creating another account; this sends only to the signed-in manager's profile email.
+Diagnostics record the subject, time, expected and effective mailer sender,
+final generated From header and Message-ID, content type, body byte count
+and handoff result. Compare the Message-ID with Gmail's **Show original** for
+the same email. Diagnostics never store recipients or message bodies. A successful
+handoff means only that the mail function accepted the message, not that a mail
+provider delivered it. Custom store emails explicitly use plain text and UTF-8.
+
+For local MIME verification without sending, run
+`php -n plugins/product-manager/tests/reseller-mail-integration.php <wordpress-core-directory>`.
+This uses the supplied WordPress core's real mail function and PHPMailer, replaces
+network delivery with local MIME capture, and checks both registration messages.
+
 ### Reseller account tools and existing accounts
 
-The portal includes **My purchases**, billing/shipping addresses, account details
+The portal opens on **Overview**, with a responsive sidebar grouping **Selling**,
+**Buying** and **Account**. Overview shows live products, distinct paid processing
+orders needing shipment, eligible unpaid earnings, and recent items to ship.
+Virtual, fully refunded, cancelled and already tracked items are excluded from
+the shipment count. Product tables link to separate add/edit forms. **Customer
+orders → Ship order** opens shipment details for that reseller's items only.
+**Earnings** separates eligible amounts, amounts awaiting completion/refund review,
+recorded payouts and adjustments after refunds. Totals remain separate per
+currency; an order currency changed after payout is flagged for admin review.
+Summary data is read in bounded batches across all of the seller's order items,
+while listing pages remain paginated. Admin payout screens retain their controls.
+
+The portal also includes **My purchases**, billing/shipping addresses, account details
 and notifications (when the notifications module is present). Purchases are
 queried by the signed-in reseller's customer ID; sales are queried by the seller
 snapshot on each order item. WooCommerce's existing validated account/address
@@ -161,9 +198,10 @@ Run the standalone checks from the repo root:
 
 ```text
 php -n plugins/product-manager/tests/reseller-regression.php
-php -n plugins/product-manager/tests/reseller-applications.php
+php -n plugins/product-manager/tests/reseller-applications.php <wordpress-core-directory>
 php -n plugins/product-manager/tests/reseller-accounts.php
 php -n plugins/product-manager/tests/reseller-emails.php
+php -n plugins/product-manager/tests/reseller-dashboard.php
 ```
 
 The standalone tests cover account separation, duplicate emails, signup roles,
