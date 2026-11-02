@@ -10,6 +10,7 @@ function get_user_meta( $id, $key, $single = true ) { return '_airsoft_reseller_
 function get_option( $key, $default = false ) { return $default; }
 function get_bloginfo( $key ) { return 'Store'; }
 function home_url( $path ) { return 'https://example.test' . $path; }
+function wc_get_page_permalink( $page ) { return home_url( '/shop/' ); }
 function absint( $v ) { return abs( (int) $v ); }
 function sanitize_key( $v ) { return preg_replace( '/[^a-z0-9_-]/', '', strtolower( $v ) ); }
 function sanitize_text_field( $v ) { return trim( strip_tags( $v ) ); }
@@ -165,10 +166,18 @@ verify( array() === Airsoft_Product_Manager_Reseller_Orders::portal_order( 90 ),
 $counts = Airsoft_Product_Manager_Reseller_Products::counts();
 verify( array( 'publish' => 1, 'pending' => 1, 'draft' => 1 ) === $counts, 'Product counts include only owned listings' );
 $html = portal_html( array() );
-verify( false !== strpos( $html, '<h2>Overview</h2>' ) && false !== strpos( $html, 'Selling' ) && false !== strpos( $html, 'Buying' ), 'Default portal renders overview and separate selling/buying groups' );
+verify( false !== strpos( $html, 'airsoft-portal-topbar' ) && false !== strpos( $html, 'Store' ) && false !== strpos( $html, 'Visit shop' ) && false !== strpos( $html, '/shop/' ), 'Dashboard includes store identity and shop link' );
+verify( 1 === substr_count( $html, '<main ' ) && 1 === substr_count( $html, '</main>' ), 'Dashboard owns exactly one main landmark' );
+verify( false !== strpos( $html, '<h2>Welcome back, My reseller store.</h2>' ) && false !== strpos( $html, 'Selling' ) && false !== strpos( $html, 'Buying' ), 'Default workspace welcomes the reseller and separates selling/buying groups' );
+verify( false !== strpos( $html, '1 order(s) ready to ship' ) && false !== strpos( $html, 'HKD 270.00' ) && false !== strpos( $html, 'Approved reseller' ), 'Shipping tasks, recorded payouts and account status use actual seller data' );
 verify( false !== strpos( $html, 'USD 135.00' ) && false !== strpos( $html, 'Ship order' ), 'Overview uses actual eligible earnings and visible shipping action' );
 verify( false === strpos( $html, 'OTHER SELLER' ) && false === strpos( $html, 'PRIVATE ADDRESS' ), 'Overview leaks no other seller data or customer address' );
 $previews = array( 'overview' => $html );
+$a->tracking = 'TRACK DONE';
+$empty_html = portal_html( array() );
+verify( false !== strpos( $empty_html, 'All caught up' ) && false !== strpos( $empty_html, 'No orders currently need shipment.' ) && false === strpos( $empty_html, '>Ship order</a>' ), 'No shipping tasks produces a useful empty state without shipment actions' );
+$previews['caught-up'] = $empty_html;
+$a->tracking = '';
 $html = portal_html( array( 'section' => 'products', 'seller_id' => 9 ) );
 verify( false !== strpos( $html, 'Range carry bag' ) && false === strpos( $html, 'OTHER SELLER' ), 'Product listing ignores forged seller ID' );
 verify( false !== strpos( $html, 'section=product-edit' ) && false === strpos( $html, 'enctype=' ), 'Listing links to dedicated product editor' );
@@ -217,9 +226,10 @@ $page = Airsoft_Product_Manager_Reseller_Orders::portal_page();
 verify( 20 === count( $page['items'] ) && $page['more'], 'Customer-order table remains paginated' );
 if ( ! empty( $argv[1] ) ) {
  $css = 'file:///' . str_replace( array( '\\', ' ' ), array( '/', '%20' ), dirname( __DIR__ ) . '/assets/css/reseller.css' );
+ $theme_css = 'file:///' . str_replace( array( '\\', ' ' ), array( '/', '%20' ), dirname( __DIR__, 3 ) . '/themes/betheme/css/be.css' );
  foreach ( $previews as $section => $preview ) {
   $path = 'overview' === $section ? $argv[1] : preg_replace( '/\.html$/', '-' . $section . '.html', $argv[1] );
-  file_put_contents( $path, '<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="' . esc_attr( $css ) . '"><style>body{background:#f5f6f9;font-family:Arial,sans-serif;margin:24px}a{color:inherit}.dashicons{display:inline-block}</style></head><body>' . $preview . '</body></html>' );
+  file_put_contents( $path, '<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="' . esc_attr( $theme_css ) . '"><link rel="stylesheet" href="' . esc_attr( $css ) . '"><style>body{font-family:Arial,sans-serif}.dashicons{display:inline-block}</style></head><body class="airsoft-reseller-standalone airsoft-reseller-dashboard"><div class="airsoft-standalone"><div class="airsoft-standalone-content">' . $preview . '</div></div></body></html>' );
  }
 }
 echo "PASS: $checks reseller dashboard checks\n";

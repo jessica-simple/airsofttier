@@ -20,6 +20,13 @@ and email. Approved resellers manage products, sales, earnings, purchases,
 addresses and account details in the portal. Pending/rejected applicants see
 their status without access to buying or selling.
 
+These three pages automatically use the plugin's standalone template without
+BeTheme's header, footer, sidebar or page builder. Keep exactly one actual reseller
+shortcode in each page's WordPress content; a shortcode stored only in BeBuilder
+meta will not render. Saved reseller page IDs remain associated even if the
+content changes, so do not repurpose them. Ordinary storefront templates are
+unchanged. Continue excluding all three reseller pages from page caching.
+
 ## Header notification bell
 
 ```text

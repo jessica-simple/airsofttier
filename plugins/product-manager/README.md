@@ -156,6 +156,40 @@ sign-in per browser session. Use different browser profiles for simultaneous
 member and reseller sessions. Rejected accounts keep their application status;
 admins can later approve the same reseller identity after resolving the issue.
 
+### Standalone reseller pages (1.4.0)
+
+Reseller login, registration and portal pages automatically use the plugin's
+standalone template, without BeTheme's header, footer, sidebar or page builder.
+The portal includes a **Visit shop** link; sign-in, registration and restricted
+views include **Return to store**. Other storefront templates remain unchanged.
+WordPress/WooCommerce hooks and queued assets remain available.
+
+Keep exactly one reseller shortcode in each page's WordPress content. Do not
+replace it with a BeBuilder-only layout: shortcodes stored only in builder meta
+will not render through the standalone template. Saved page IDs still match even
+if their content is changed, so do not repurpose those pages without updating
+the reseller page configuration. Embeds, Customizer previews and WooCommerce's
+Shop, Cart, Checkout, My Account and endpoint templates are excluded. An unreadable
+or missing plugin template falls back to the original theme template.
+
+Keep all three reseller pages excluded from page caching; existing no-cache
+headers and account restrictions are retained. Country/state selects retain their
+existing native behavior; this release adds no Select2 enhancement or password
+strength meter. Theme assets are not dequeued: check the staging browser console
+for theme scripts that depend on header/footer markup before deploying.
+
+### Full-page workspace (1.5.0)
+
+Approved resellers use an edge-to-edge workspace: the store identity, reseller
+status and navigation sit in a full-height sidebar, with a slim location/Visit
+shop toolbar over the content. There is no outer dashboard card, rounded frame
+or page gutter. Login, registration and restricted account views retain their
+separate card layout. The overview highlights orders ready to ship and shows
+owned live products, eligible earnings and recorded payouts using existing data.
+At mobile widths navigation wraps above the content and customer-order rows
+become compact cards with their shipment actions visible. Other tables retain
+their internal horizontal scrolling. No pricing, fulfilment or payout rules change.
+
 ### Prices and earnings
 
 - Admins can set a reseller price on simple products and individual variations.
@@ -202,6 +236,8 @@ php -n plugins/product-manager/tests/reseller-applications.php <wordpress-core-d
 php -n plugins/product-manager/tests/reseller-accounts.php
 php -n plugins/product-manager/tests/reseller-emails.php
 php -n plugins/product-manager/tests/reseller-dashboard.php
+php -n plugins/product-manager/tests/reseller-standalone.php
+php -n plugins/product-manager/tests/reseller-mail-integration.php <wordpress-core-directory>
 ```
 
 The standalone tests cover account separation, duplicate emails, signup roles,
@@ -209,6 +245,9 @@ login restrictions, portal access, legacy identities, routing, ownership,
 eligibility, price precedence, zero/blank prices,
 repeated cart totals, role changes, seller ownership, immutable order snapshots,
 commission/refund calculations, refund holds and payout permissions.
+Standalone template checks cover page detection, excluded templates, fallback,
+landmarks, branding, error alerts, viewport hooks and assets. They do not replace
+a staging browser check of cookies, redirects, sessions, address scripts or CSS.
 
 Before production, test on a WordPress/WooCommerce staging site:
 
@@ -225,6 +264,12 @@ Before production, test on a WordPress/WooCommerce staging site:
    email notification and customer tracking. Test on both legacy storage and HPOS.
 5. Record payment on a completed order, resubmit the payment request, refund an
    item before and after payout, and test a refund without item allocation.
+6. Check standalone login, registration and portal views at 320, 375, 768 and
+   1024 pixels, including a long site name. Confirm one main landmark and one
+   viewport, no theme layout wrappers or page overflow, internal table scrolling,
+   visible keyboard focus and focused login error alerts. Verify country/state
+   updates, no-cache headers and the absence of redirect loops. Home, product,
+   Shop, Cart, Checkout, My Account and ordinary pages must retain their templates.
 
 ## Customer notifications
 

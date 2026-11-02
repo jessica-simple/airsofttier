@@ -11,6 +11,7 @@ class Airsoft_Product_Manager_Reseller_Portal {
   add_action( 'admin_init', array( __CLASS__, 'pages' ) );
   add_action( 'wp_enqueue_scripts', array( __CLASS__, 'assets' ), 100 );
   add_action( 'template_redirect', array( __CLASS__, 'route' ), 2 );
+  add_filter( 'template_include', array( __CLASS__, 'standalone_template' ), 100 );
   add_action( 'wp_loaded', array( __CLASS__, 'address_context' ), 5 );
   add_action( 'wp_login', array( __CLASS__, 'normalize_legacy_account' ), 10, 2 );
   add_action( 'woocommerce_before_customer_login_form', array( __CLASS__, 'entry_links' ) );
@@ -28,9 +29,41 @@ class Airsoft_Product_Manager_Reseller_Portal {
  public static function roles() { add_role( self::APPLICANT_ROLE, 'Reseller applicant', array( 'read' => true ) ); }
 
  public static function assets() {
-  if ( ! self::is_page( 'login' ) && ! self::is_page( 'register' ) && ! self::is_page( 'portal' ) ) { return; }
+  if ( ! self::page_key() ) { return; }
   wp_enqueue_style( 'airsoft-reseller', AIRSOFT_PRODUCT_MANAGER_URL . 'assets/css/reseller.css', array(), filemtime( AIRSOFT_PRODUCT_MANAGER_DIR . 'assets/css/reseller.css' ) );
-  if ( self::is_page( 'portal' ) ) { wp_enqueue_style( 'dashicons' ); }
+  wp_enqueue_style( 'dashicons' );
+  wp_enqueue_script( 'wc-account-i18n' );
+ }
+
+ public static function page_key() {
+  foreach ( array( 'portal', 'login', 'register' ) as $key ) { if ( self::is_page( $key ) ) { return $key; } }
+  return '';
+ }
+
+ public static function standalone_template( $template ) {
+  if ( is_admin() || ! is_singular( 'page' ) || is_embed() || is_customize_preview() ) { return $template; }
+  foreach ( array( 'is_shop', 'is_cart', 'is_checkout', 'is_account_page', 'is_wc_endpoint_url' ) as $conditional ) {
+   if ( function_exists( $conditional ) && $conditional() ) { return $template; }
+  }
+  if ( ! self::page_key() ) { return $template; }
+  $file = AIRSOFT_PRODUCT_MANAGER_DIR . 'templates/reseller-standalone.php';
+  return is_readable( $file ) ? $file : $template;
+ }
+
+ /** The dashboard owns its main landmark only when its shortcode is present. */
+ public static function dashboard_view() {
+  $post = get_post();
+  return 'portal' === self::page_key() && $post && has_shortcode( $post->post_content, 'airsoft_reseller_portal' )
+   && is_user_logged_in() && self::is_reseller_account() && Airsoft_Product_Manager_Resellers::approved();
+ }
+
+ public static function site_header( $context = 'portal' ) {
+  $portal = 'auth' !== $context;
+  $name = get_bloginfo( 'name' );
+  $home = home_url( '/' );
+  $shop = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : '';
+  $url = $portal && $shop ? $shop : $home;
+  echo '<div class="airsoft-portal-topbar"><a class="airsoft-portal-brand" href="' . esc_url( $home ) . '"><span class="dashicons dashicons-store" aria-hidden="true"></span><div><strong>' . esc_html( $name ? $name : 'Store' ) . '</strong><span>' . ( $portal ? 'Reseller portal' : 'Reseller account' ) . '</span></div></a><a class="airsoft-button" href="' . esc_url( $url ) . '">' . ( $portal ? 'Visit shop' : 'Return to store' ) . '</a></div>';
  }
 
  public static function can_purchase( $allowed, $product ) {
@@ -173,9 +206,10 @@ class Airsoft_Product_Manager_Reseller_Portal {
  private static function error() { if ( self::$error ) { echo '<p role="alert">' . esc_html( self::$error ) . '</p>'; } }
 
  public static function registration() {
-  ob_start(); echo '<div class="woocommerce airsoft-reseller-registration"><h2>Reseller registration</h2>';
-  if ( self::member_notice() ) { echo '</div>'; return ob_get_clean(); }
-  if ( is_user_logged_in() ) { echo '<p><a href="' . esc_url( self::url() ) . '">Open Reseller Portal</a></p></div>'; return ob_get_clean(); }
+  ob_start(); echo '<div class="woocommerce airsoft-reseller-auth">'; self::site_header( 'auth' );
+  echo '<div class="airsoft-reseller-registration"><h2>Reseller registration</h2>';
+  if ( self::member_notice() ) { echo '</div></div>'; return ob_get_clean(); }
+  if ( is_user_logged_in() ) { echo '<p><a href="' . esc_url( self::url() ) . '">Open Reseller Portal</a></p></div></div>'; return ob_get_clean(); }
   self::error();
   echo '<p>Create a separate reseller account using an email that is not registered to a member account. Admin approval is required before buying at reseller prices or selling.</p><form method="post">';
   wp_nonce_field( 'airsoft_portal', 'airsoft_portal_nonce' );
@@ -184,24 +218,26 @@ class Airsoft_Product_Manager_Reseller_Portal {
   echo '<p><label>Tell us about your products<br><textarea name="details" required maxlength="2000"></textarea></label></p>';
   Airsoft_Product_Manager_Resellers::field( 'Password (at least 12 characters)', 'password', '', 'password', 'required minlength="12" autocomplete="new-password"' );
   Airsoft_Product_Manager_Resellers::field( 'Confirm password', 'password_confirm', '', 'password', 'required minlength="12" autocomplete="new-password"' );
-  echo '<button name="airsoft_portal_action" value="register">Submit application</button></form><p><a href="' . esc_url( self::url( 'login' ) ) . '">Already registered? Reseller login</a></p></div>';
+  echo '<button name="airsoft_portal_action" value="register">Submit application</button></form><p><a href="' . esc_url( self::url( 'login' ) ) . '">Already registered? Reseller login</a></p></div></div>';
   return ob_get_clean();
  }
  public static function login() {
-  ob_start(); echo '<div class="woocommerce airsoft-reseller-login"><h2>Reseller login</h2>';
-  if ( self::member_notice() ) { echo '</div>'; return ob_get_clean(); }
-  if ( is_user_logged_in() ) { echo '<p><a href="' . esc_url( self::url() ) . '">Open Reseller Portal</a></p></div>'; return ob_get_clean(); }
+  ob_start(); echo '<div class="woocommerce airsoft-reseller-auth">'; self::site_header( 'auth' );
+  echo '<div class="airsoft-reseller-login"><h2>Reseller login</h2>';
+  if ( self::member_notice() ) { echo '</div></div>'; return ob_get_clean(); }
+  if ( is_user_logged_in() ) { echo '<p><a href="' . esc_url( self::url() ) . '">Open Reseller Portal</a></p></div></div>'; return ob_get_clean(); }
   self::error();
   if ( isset( $_GET['submitted'] ) ) { echo '<p>Your application was submitted. Sign in to check its status.</p>'; }
   echo '<form method="post">'; wp_nonce_field( 'airsoft_portal', 'airsoft_portal_nonce' );
   Airsoft_Product_Manager_Resellers::field( 'Reseller email', 'reseller_login', '', 'email', 'required autocomplete="username"' );
   Airsoft_Product_Manager_Resellers::field( 'Password', 'reseller_password', '', 'password', 'required autocomplete="current-password"' );
-  echo '<p><label><input type="checkbox" name="remember" value="1"> Remember me</label></p><button name="airsoft_portal_action" value="login">Log in</button></form><p><a href="' . esc_url( wp_lostpassword_url( self::url( 'login' ) ) ) . '">Forgot password?</a> · <a href="' . esc_url( self::url( 'register' ) ) . '">Register a reseller account</a></p></div>';
+  echo '<p><label><input type="checkbox" name="remember" value="1"> Remember me</label></p><button name="airsoft_portal_action" value="login">Log in</button></form><p><a href="' . esc_url( wp_lostpassword_url( self::url( 'login' ) ) ) . '">Forgot password?</a> · <a href="' . esc_url( self::url( 'register' ) ) . '">Register a reseller account</a></p></div></div>';
   return ob_get_clean();
  }
 
  public static function portal() {
   ob_start(); echo '<div class="woocommerce airsoft-reseller-portal">';
+  if ( ! is_user_logged_in() || ! self::is_reseller_account() || ! Airsoft_Product_Manager_Resellers::approved() ) { self::site_header( 'auth' ); }
   if ( ! is_user_logged_in() ) { echo '<section class="airsoft-panel"><h2>Reseller Portal</h2><p><a href="' . esc_url( self::url( 'login' ) ) . '">Sign in as a reseller</a></p></section></div>'; return ob_get_clean(); }
   if ( self::member_notice() ) { echo '</div>'; return ob_get_clean(); }
   if ( ! Airsoft_Product_Manager_Resellers::approved() ) {

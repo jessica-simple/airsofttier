@@ -52,6 +52,7 @@ function update_option( $key, $value, $autoload ) { global $options; $options[$k
 function wp_mail( $to, $subject, $body ) { return true; }
 function absint( $v ) { return abs( (int) $v ); }
 function home_url( $path ) { return 'https://example.test' . $path; }
+function wc_get_page_permalink( $page ) { return home_url( '/shop/' ); }
 function admin_url( $path ) { return 'https://example.test/wp-admin/' . $path; }
 function get_post_status( $id ) { global $pages; return isset( $pages[$id] ) ? 'publish' : false; }
 function get_permalink( $id ) { return home_url( '/page-' . $id . '/' ); }

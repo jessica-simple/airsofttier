@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Product Manager
  * Description: Manage WooCommerce product categories and group-buy deals.
- * Version: 1.3.0
+ * Version: 1.5.0
  * Author: Airsoft
  * Text Domain: product-manager
  * Requires Plugins: woocommerce

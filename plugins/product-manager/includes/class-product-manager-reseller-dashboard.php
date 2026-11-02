@@ -34,7 +34,10 @@ class Airsoft_Product_Manager_Reseller_Dashboard {
   if ( 'notifications' === $section && ! class_exists( 'Airsoft_Product_Manager_Notifications' ) ) { $section = 'overview'; }
   $summary = in_array( $section, array( 'overview', 'earnings' ), true ) ? Airsoft_Product_Manager_Reseller_Orders::portal_summary() : null;
   $business = get_user_meta( get_current_user_id(), '_airsoft_reseller_business', true );
-  echo '<div class="airsoft-portal-shell"><div class="airsoft-portal-body"><aside class="airsoft-portal-sidebar"><nav aria-label="Reseller pages">';
+  $name = get_bloginfo( 'name' );
+  $shop = wc_get_page_permalink( 'shop' );
+  $heading = 'overview' === $section ? 'Welcome back, ' . ( $business ? $business : 'reseller' ) . '.' : $pages[$section][0];
+  echo '<div class="airsoft-portal-shell airsoft-portal-workspace"><div class="airsoft-portal-body"><aside class="airsoft-portal-sidebar"><a class="airsoft-portal-brand" href="' . esc_url( home_url( '/' ) ) . '">' . self::icon( 'store' ) . '<div><strong>' . esc_html( $name ? $name : 'Store' ) . '</strong><span>Reseller workspace</span></div></a><div class="airsoft-sidebar-business">' . self::icon( 'businessperson' ) . '<div><strong>' . esc_html( $business ? $business : 'Reseller account' ) . '</strong><span class="airsoft-approved-status">Approved reseller</span></div></div><nav aria-label="Reseller pages">';
   $groups = array(
    'Selling' => array( 'overview' => array( 'Overview', 'dashboard' ), 'products' => array( 'My products', 'archive' ), 'sales' => array( 'Customer orders', 'clipboard' ), 'earnings' => array( 'Earnings', 'money-alt' ) ),
    'Buying' => array( 'purchases' => array( 'My purchases', 'cart' ) ),
@@ -49,7 +52,7 @@ class Airsoft_Product_Manager_Reseller_Dashboard {
    }
    echo '</div>';
   }
-  echo '</nav><div class="airsoft-sidebar-account"><strong>' . esc_html( $business ? $business : 'Reseller account' ) . '</strong><a href="' . esc_url( wp_logout_url( Airsoft_Product_Manager_Reseller_Portal::url( 'login' ) ) ) . '">' . self::icon( 'exit' ) . 'Log out</a></div></aside><main class="airsoft-portal-main"><div class="airsoft-portal-title"><div><h2>' . esc_html( $pages[$section][0] ) . '</h2><p class="airsoft-muted">' . esc_html( $pages[$section][1] ) . '</p></div>';
+  echo '</nav><div class="airsoft-sidebar-account"><span>Reseller portal</span><a href="' . esc_url( wp_logout_url( Airsoft_Product_Manager_Reseller_Portal::url( 'login' ) ) ) . '">' . self::icon( 'exit' ) . 'Log out</a></div></aside><div class="airsoft-portal-workarea"><header class="airsoft-portal-topbar"><nav class="airsoft-workspace-location" aria-label="Workspace location"><a href="' . esc_url( self::link( 'overview' ) ) . '">Workspace</a><span aria-hidden="true">/</span><span>' . esc_html( $pages[$section][0] ) . '</span></nav><a class="airsoft-visit-shop" href="' . esc_url( $shop ? $shop : home_url( '/' ) ) . '">Visit shop ' . self::icon( 'external' ) . '</a></header><main class="airsoft-portal-main"><div class="airsoft-portal-title"><div><h2>' . esc_html( $heading ) . '</h2><p class="airsoft-muted">' . esc_html( $pages[$section][1] ) . '</p></div>';
   if ( in_array( $section, array( 'overview', 'products' ), true ) ) { echo '<a class="airsoft-button airsoft-button-primary" href="' . esc_url( self::link( 'product-edit' ) ) . '">' . self::icon( 'plus-alt2' ) . 'Add product</a>'; }
   echo '</div>';
   wc_print_notices();
@@ -66,7 +69,7 @@ class Airsoft_Product_Manager_Reseller_Dashboard {
    if ( 'profile' === $section ) { WC_Shortcode_My_Account::edit_account(); } else { WC_Shortcode_My_Account::edit_address( $section ); }
    echo '</section>';
   } elseif ( 'notifications' === $section && class_exists( 'Airsoft_Product_Manager_Notifications' ) ) { echo '<section class="airsoft-panel">'; Airsoft_Product_Manager_Notifications::render(); echo '</section>'; }
-  echo '</main></div></div>';
+  echo '</main></div></div></div>';
  }
 
  private static function stat( $label, $value, $note ) {
@@ -75,17 +78,17 @@ class Airsoft_Product_Manager_Reseller_Dashboard {
 
  private static function overview( $summary ) {
   $counts = Airsoft_Product_Manager_Reseller_Products::counts();
-  echo '<div class="airsoft-stats">';
-  self::stat( 'Orders to ship', esc_html( $summary['to_ship'] ), 'Paid orders with items awaiting shipment' );
-  self::stat( 'Products live', esc_html( $counts['publish'] ), $counts['pending'] . ' awaiting approval' );
-  self::stat( 'Eligible earnings', self::money( $summary['eligible'] ), 'After commission, item refunds and recorded payouts' );
+  echo '<section class="airsoft-shipping-attention" aria-label="Shipment tasks"><span class="airsoft-attention-icon">' . self::icon( 'car' ) . '</span><div><strong>' . ( $summary['to_ship'] ? absint( $summary['to_ship'] ) . ' order(s) ready to ship' : 'All caught up' ) . '</strong><p class="airsoft-muted">' . ( $summary['to_ship'] ? 'Paid orders waiting for your shipment update' : 'No paid orders currently need shipment' ) . '</p></div><a class="airsoft-button" href="' . esc_url( self::link( 'sales' ) ) . '">View orders</a></section><div class="airsoft-stats">';
+  self::stat( 'Live products', esc_html( $counts['publish'] ), $counts['pending'] . ' awaiting approval · ' . $counts['draft'] . ' draft(s)' );
+  self::stat( 'Eligible for payout', self::money( $summary['eligible'] ), 'After commission, item refunds and recorded payouts' );
+  self::stat( 'Payouts recorded', self::money( $summary['paid'] ), 'Payments recorded by the administrator' );
   echo '</div><section class="airsoft-panel"><div class="airsoft-panel-heading"><h3>Orders needing attention</h3><a href="' . esc_url( self::link( 'sales' ) ) . '">View all orders</a></div>';
   self::order_table( $summary['attention'], 'No orders currently need shipment.' );
-  echo '</section><div class="airsoft-two-column"><section class="airsoft-panel"><h3>Product updates</h3><div class="airsoft-summary-row"><div>' . absint( $counts['pending'] ) . ' listing(s) awaiting review<p class="airsoft-muted">' . absint( $counts['draft'] ) . ' draft(s)</p></div><a href="' . esc_url( self::link( 'products' ) ) . '">View products</a></div></section><section class="airsoft-panel"><h3>Payout overview</h3><div class="airsoft-summary-row"><div>' . self::money( $summary['eligible'] ) . '<p class="airsoft-muted">Paid according to the site schedule</p></div><a href="' . esc_url( self::link( 'earnings' ) ) . '">View earnings</a></div></section></div>';
+  echo '<div class="airsoft-orders-footnote"><span>Only your items are shown</span><span>Tracking is shared with the customer</span></div></section>';
  }
 
  private static function order_table( $entries, $empty ) {
-  echo '<div class="airsoft-table-wrap"><table class="airsoft-table"><thead><tr><th>Order / item</th><th>Item total</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+  echo '<div class="airsoft-table-wrap airsoft-order-list"><table class="airsoft-table airsoft-order-table"><thead><tr><th scope="col">Order / item</th><th scope="col">Item total</th><th scope="col">Status</th><th scope="col">Action</th></tr></thead><tbody>';
   foreach ( $entries as $entry ) {
    $order = $entry['order']; $item = $entry['item'];
    $label = wc_get_order_status_name( $order->get_status() );

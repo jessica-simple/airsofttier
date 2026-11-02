@@ -77,11 +77,12 @@
 }
 .airsoft-reseller-portal *, .airsoft-reseller-portal *::before, .airsoft-reseller-portal *::after { box-sizing: border-box; }
 .airsoft-reseller-portal .airsoft-portal-shell { border: 1px solid var(--portal-line); border-radius: 24px; background: #f5f6f9; overflow: hidden; box-shadow: 0 8px 30px rgba(17,24,39,.04); }
-.airsoft-reseller-portal .airsoft-portal-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px 28px; background: #fff; border-bottom: 1px solid var(--portal-line); flex-wrap: wrap; }
-.airsoft-reseller-portal .airsoft-portal-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.airsoft-reseller-portal .airsoft-portal-brand > .dashicons { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--portal-ink); color: #fff; flex-shrink: 0; }
-.airsoft-reseller-portal .airsoft-portal-brand strong { font-weight: 600; overflow-wrap: anywhere; }
-.airsoft-reseller-portal .airsoft-portal-brand div > span { display: block; font-size: 12px; color: var(--portal-muted); }
+.airsoft-reseller-portal .airsoft-portal-topbar, .airsoft-reseller-auth .airsoft-portal-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px 28px; background: #fff; border-bottom: 1px solid var(--portal-line); flex-wrap: wrap; }
+.airsoft-reseller-portal .airsoft-portal-brand, .airsoft-reseller-auth .airsoft-portal-brand { display: flex; align-items: center; gap: 12px; min-width: 0; color: inherit; text-decoration: none; }
+.airsoft-reseller-portal .airsoft-portal-brand > div, .airsoft-reseller-auth .airsoft-portal-brand > div { min-width: 0; }
+.airsoft-reseller-portal .airsoft-portal-brand > .dashicons, .airsoft-reseller-auth .airsoft-portal-brand > .dashicons { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--portal-ink); color: #fff; flex-shrink: 0; }
+.airsoft-reseller-portal .airsoft-portal-brand strong, .airsoft-reseller-auth .airsoft-portal-brand strong { font-weight: 600; overflow-wrap: anywhere; }
+.airsoft-reseller-portal .airsoft-portal-brand div > span, .airsoft-reseller-auth .airsoft-portal-brand div > span { display: block; font-size: 12px; color: var(--portal-muted); }
 .airsoft-reseller-portal .airsoft-portal-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); align-items: stretch; }
 .airsoft-reseller-portal .airsoft-portal-sidebar { padding: 26px 16px; border-right: 1px solid var(--portal-line); background: #fff; min-width: 0; }
 .airsoft-reseller-portal .airsoft-nav-group { margin-bottom: 24px; }
@@ -125,7 +126,7 @@
 .airsoft-reseller-portal .airsoft-badge { display: inline-flex; align-items: center; padding: 5px 9px; border-radius: 7px; background: #f0f2f5; color: #465166; font-size: 11px; line-height: 1.4; white-space: nowrap; }
 .airsoft-reseller-portal .airsoft-badge-good { background: #edf7f0; color: #216447; }
 .airsoft-reseller-portal .airsoft-badge-wait { background: #fff6e7; color: #8c5b12; }
-.woocommerce.airsoft-reseller-portal .airsoft-button, .woocommerce.airsoft-reseller-portal .airsoft-portal-main button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: auto; min-height: 40px; height: auto; padding: 10px 14px; margin: 0; border: 1px solid var(--portal-line); border-radius: 11px; background: #fff; color: var(--portal-ink); font: inherit; font-size: 13px; font-weight: 500; line-height: 1.4; white-space: nowrap; box-shadow: none; text-decoration: none; cursor: pointer; }
+.woocommerce.airsoft-reseller-portal .airsoft-button, .woocommerce.airsoft-reseller-auth .airsoft-button, .woocommerce.airsoft-reseller-portal .airsoft-portal-main button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: auto; min-height: 40px; height: auto; padding: 10px 14px; margin: 0; border: 1px solid var(--portal-line); border-radius: 11px; background: #fff; color: var(--portal-ink); font: inherit; font-size: 13px; font-weight: 500; line-height: 1.4; white-space: nowrap; box-shadow: none; text-decoration: none; cursor: pointer; }
 .woocommerce.airsoft-reseller-portal .airsoft-button-primary, .woocommerce.airsoft-reseller-portal .airsoft-portal-main button:not(.airsoft-button) { background: var(--portal-ink); color: #fff; border-color: var(--portal-ink); }
 .airsoft-reseller-portal .airsoft-button .dashicons { font-size: 16px; width: 16px; height: 16px; }
 .airsoft-reseller-portal button::after, .airsoft-reseller-portal a.airsoft-button::after { display: none; }
@@ -148,6 +149,19 @@
 .airsoft-reseller-portal .airsoft-account-tabs a { color: var(--portal-muted); padding: 8px 10px; border-radius: 9px; }
 .airsoft-reseller-portal .airsoft-account-tabs a[aria-current="page"] { color: #fff; background: var(--portal-ink); }
 .airsoft-reseller-portal .woocommerce-error, .airsoft-reseller-portal .woocommerce-message, .airsoft-reseller-portal .woocommerce-info { border-radius: 12px; }
+
+/* Standalone document. Gutters belong to the shell, not the body. */
+body.airsoft-reseller-standalone { min-width: 0; margin: 0; padding: 0; background: #f5f6f9; }
+.airsoft-reseller-standalone .airsoft-standalone { width: 100%; padding: 0 16px; box-sizing: border-box; }
+.airsoft-reseller-standalone .airsoft-standalone-main { width: 100%; max-width: 1240px; margin: 0 auto; padding: 32px 0 48px; box-sizing: border-box; }
+.airsoft-reseller-auth { --portal-ink: #111827; --portal-muted: #667085; --portal-line: #e8ebef; color: #18202d; font-size: 14px; line-height: 1.5; }
+.airsoft-reseller-auth *, .airsoft-reseller-auth *::before, .airsoft-reseller-auth *::after { box-sizing: border-box; }
+.airsoft-reseller-auth .airsoft-portal-topbar { border: 1px solid var(--portal-line); border-radius: 18px; }
+.airsoft-reseller-standalone .airsoft-reseller-auth { width: 100%; max-width: 520px; margin: 40px auto; }
+.airsoft-reseller-standalone .airsoft-reseller-login, .airsoft-reseller-standalone .airsoft-reseller-registration { display: block; width: 100%; max-width: 480px; min-width: 0; margin: 24px auto 0; padding: clamp(22px, 5vw, 40px) !important; box-sizing: border-box; }
+.airsoft-reseller-standalone .airsoft-reseller-login textarea, .airsoft-reseller-standalone .airsoft-reseller-registration textarea { height: auto; min-height: 140px; padding: 14px 18px; resize: vertical; }
+.airsoft-reseller-standalone a:focus-visible, .airsoft-reseller-standalone button:focus-visible, .airsoft-reseller-standalone input:focus-visible, .airsoft-reseller-standalone select:focus-visible, .airsoft-reseller-standalone textarea:focus-visible { outline: 2px solid #506b99; outline-offset: 3px; }
+.airsoft-reseller-standalone [role="alert"] { margin: 12px 0; padding: 12px 14px; border-left: 3px solid #b42318; border-radius: 8px; background: #fef3f2; color: #7a271a; }
 @media (max-width: 1000px) {
     .airsoft-reseller-portal .airsoft-portal-body { grid-template-columns: 190px minmax(0,1fr); }
     .airsoft-reseller-portal .airsoft-portal-main { padding: 24px; }
@@ -168,6 +182,7 @@
     .airsoft-reseller-portal .airsoft-sidebar-account strong { margin: 0; }
     .airsoft-reseller-portal .airsoft-portal-main { padding: 20px 14px; }
     .airsoft-reseller-portal .airsoft-portal-topbar { padding: 20px; }
+    .airsoft-reseller-auth .airsoft-portal-topbar { padding: 20px; }
     .airsoft-reseller-portal .airsoft-portal-title { align-items: flex-start; }
     .airsoft-reseller-portal .airsoft-portal-title > .airsoft-button { width: 100%; }
     .airsoft-reseller-portal .airsoft-panel { padding: 18px; }
@@ -175,7 +190,88 @@
     .airsoft-reseller-portal .airsoft-portal-title h2 { font-size: 25px; }
     .airsoft-reseller-portal .airsoft-table-wrap::after { content: "Scroll horizontally to view all columns."; display: block; margin-top: 10px; color: var(--portal-muted); font-size: 12px; }
 }
+@media (max-width: 600px) {
+    .airsoft-reseller-standalone .airsoft-standalone { padding: 0 12px; }
+    .airsoft-reseller-standalone .airsoft-standalone-main { padding: 20px 0 32px; }
+    .airsoft-reseller-standalone .airsoft-reseller-auth { margin: 20px auto; }
+    .airsoft-reseller-standalone .airsoft-reseller-login, .airsoft-reseller-standalone .airsoft-reseller-registration { padding: 22px !important; border-radius: 20px; }
+}
 @media (pointer: coarse) {
     .airsoft-reseller-portal .airsoft-button, .airsoft-reseller-portal .airsoft-account-tabs a, .airsoft-reseller-portal .airsoft-sidebar-account a { min-height: 44px; }
     .airsoft-reseller-portal .airsoft-portal-main input:not([type="hidden"]), .airsoft-reseller-portal .airsoft-portal-main textarea, .airsoft-reseller-portal .airsoft-portal-main select { font-size: 16px; }
+    .airsoft-reseller-standalone .airsoft-reseller-auth input, .airsoft-reseller-standalone .airsoft-reseller-auth select, .airsoft-reseller-standalone .airsoft-reseller-auth textarea { font-size: 16px; }
+    .woocommerce.airsoft-reseller-auth .airsoft-button { min-height: 44px; }
+}
+
+/* Approved reseller workspace fills the document; auth cards keep their gutters. */
+.airsoft-reseller-dashboard .airsoft-standalone { padding: 0; }
+.airsoft-reseller-dashboard .airsoft-reseller-portal { max-width: none; margin: 0; }
+.airsoft-reseller-portal .airsoft-portal-workspace { border: 0; border-radius: 0; box-shadow: none; overflow: visible; }
+.airsoft-reseller-portal .airsoft-portal-workspace .airsoft-portal-body { grid-template-columns: 224px minmax(0,1fr); min-height: 100vh; min-height: 100svh; }
+.airsoft-reseller-portal .airsoft-portal-workarea { min-width: 0; }
+.airsoft-portal-workspace .airsoft-portal-sidebar { display: flex; flex-direction: column; padding: 24px 14px; }
+.airsoft-portal-workspace .airsoft-portal-sidebar > .airsoft-portal-brand { padding: 0 6px 24px; font-size: 13px; }
+.airsoft-portal-workspace .airsoft-portal-brand strong { font-weight: 500; }
+.airsoft-portal-workspace .airsoft-portal-brand > .dashicons { width: 34px; height: 36px; border-radius: 9px; }
+.airsoft-portal-workspace .airsoft-sidebar-business { display: flex; align-items: center; gap: 10px; padding: 16px 6px; margin-bottom: 20px; border-top: 1px solid var(--portal-line); border-bottom: 1px solid var(--portal-line); font-size: 13px; }
+.airsoft-portal-workspace .airsoft-sidebar-business > div { min-width: 0; overflow-wrap: anywhere; }
+.airsoft-portal-workspace .airsoft-sidebar-business > .dashicons { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #eef1f5; color: var(--portal-muted); flex-shrink: 0; }
+.airsoft-portal-workspace .airsoft-sidebar-business strong { display: block; font-weight: 500; }
+.airsoft-portal-workspace .airsoft-approved-status { display: block; margin-top: 4px; color: #216447; font-size: 12px; }
+.airsoft-portal-workspace .airsoft-approved-status::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: currentColor; }
+.airsoft-portal-workspace .airsoft-sidebar-account { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: auto; padding: 24px 10px 0; border: 0; font-size: 12px; color: var(--portal-muted); }
+.airsoft-portal-workspace .airsoft-sidebar-account a { gap: 4px; }
+.airsoft-portal-workspace .airsoft-sidebar-account .dashicons { font-size: 16px; width: 16px; height: 16px; }
+.airsoft-portal-workspace .airsoft-portal-topbar { min-height: 66px; padding: 16px 28px; border-radius: 0; font-size: 12px; color: var(--portal-muted); }
+.airsoft-portal-workspace .airsoft-workspace-location { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; min-width: 0; }
+.airsoft-portal-workspace .airsoft-workspace-location a, .airsoft-portal-workspace .airsoft-visit-shop { color: var(--portal-muted); text-decoration: none; }
+.airsoft-portal-workspace .airsoft-visit-shop { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; }
+.airsoft-portal-workspace .airsoft-visit-shop .dashicons { font-size: 15px; width: 15px; height: 15px; }
+.airsoft-portal-workspace .airsoft-portal-title > div { min-width: 0; overflow-wrap: anywhere; }
+.airsoft-portal-workspace .airsoft-portal-title h2 { font-size: 26px; }
+.airsoft-portal-workspace .airsoft-shipping-attention { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; padding: 18px; margin-bottom: 20px; border: 1px solid var(--portal-line); border-radius: 16px; background: #fff; }
+.airsoft-portal-workspace .airsoft-attention-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; background: #fff6e7; color: #8c5b12; flex-shrink: 0; }
+.airsoft-portal-workspace .airsoft-shipping-attention > div { flex: 1 1 130px; min-width: 0; }
+.airsoft-portal-workspace .airsoft-shipping-attention strong { font-weight: 500; }
+.airsoft-portal-workspace .airsoft-shipping-attention p { margin: 4px 0 0; }
+.airsoft-portal-workspace .airsoft-stats { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.airsoft-portal-workspace .airsoft-stat { display: block; padding: 18px; }
+.airsoft-portal-workspace .airsoft-stat-value { margin: 9px 0; font-size: 25px; }
+.airsoft-portal-workspace .airsoft-orders-footnote { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--portal-line); color: var(--portal-muted); font-size: 12px; }
+body.admin-bar .airsoft-portal-workspace .airsoft-portal-body { min-height: calc(100vh - 32px); min-height: calc(100svh - 32px); }
+@media (max-width: 850px) {
+    .airsoft-reseller-portal .airsoft-portal-workspace .airsoft-portal-body { grid-template-columns: 192px minmax(0,1fr); }
+    .airsoft-portal-workspace .airsoft-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .airsoft-portal-workspace .airsoft-stat:last-child { grid-column: 1 / -1; }
+}
+@media (max-width: 782px) {
+    body.admin-bar .airsoft-portal-workspace .airsoft-portal-body { min-height: calc(100vh - 46px); min-height: calc(100svh - 46px); }
+}
+@media (max-width: 700px) {
+    .airsoft-portal-workspace .airsoft-portal-sidebar { padding: 18px 16px 12px; }
+    .airsoft-portal-workspace .airsoft-portal-sidebar > .airsoft-portal-brand { padding: 0 0 14px; }
+    .airsoft-portal-workspace .airsoft-sidebar-business { padding: 12px 0; margin-bottom: 12px; }
+    .airsoft-portal-workspace .airsoft-nav-group { margin-bottom: 6px; }
+    .airsoft-portal-workspace .airsoft-nav-label { display: none; }
+    .airsoft-portal-workspace .airsoft-sidebar-account { padding: 12px 4px 0; }
+    .airsoft-portal-workspace .airsoft-portal-topbar { padding: 12px 16px; }
+    .airsoft-portal-workspace .airsoft-portal-main { padding: 24px 16px; }
+    .airsoft-portal-workspace .airsoft-portal-title > .airsoft-button { width: auto; }
+    .airsoft-portal-workspace .airsoft-order-list::after { display: none; }
+    .woocommerce.airsoft-reseller-portal .airsoft-portal-workspace table.airsoft-order-table { display: block; min-width: 0; }
+    .airsoft-order-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .airsoft-order-table tbody { display: block; }
+    .airsoft-order-table tr { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--portal-line); }
+    .airsoft-order-table tr:last-child { border-bottom: 0; }
+    .woocommerce.airsoft-reseller-portal .airsoft-order-table td { display: block; min-width: 0; padding: 0; border: 0; background: transparent; box-shadow: none; overflow-wrap: anywhere; }
+    .woocommerce.airsoft-reseller-portal .airsoft-order-table td:first-child { min-width: 0; }
+    .airsoft-order-table td:nth-child(2), .airsoft-order-table td:last-child { text-align: right; }
+    .airsoft-order-table td[colspan] { grid-column: 1 / -1; text-align: left; }
+    .woocommerce.airsoft-reseller-portal .airsoft-order-table .amount { white-space: normal; }
+    .woocommerce.airsoft-reseller-portal .airsoft-order-table .airsoft-button { max-width: 100%; white-space: normal; }
+}
+@media (max-width: 480px) {
+    .airsoft-portal-workspace .airsoft-stats { grid-template-columns: minmax(0,1fr); }
+    .airsoft-portal-workspace .airsoft-stat:last-child { grid-column: auto; }
+    .airsoft-portal-workspace .airsoft-shipping-attention > .airsoft-button { margin-left: 52px; }
 }
