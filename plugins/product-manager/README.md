@@ -45,6 +45,26 @@ WooCommerce must be installed and active.
 
 ## Reseller marketplace
 
+### Order status and wallet
+
+In **Reseller Portal → Customer orders**, the order list has a **Reseller status**
+selector and **Save status** button for each active item. A reseller can manually set
+**Confirmed**, **On delivery**, or **Complete** for each of their own order
+items. The status saves immediately. Admins control payout release under
+**Product Manager → Reseller payouts**. They can release a completed item's
+post-commission earnings to the reseller wallet once, provided the WooCommerce
+order is paid and completed and no refund reconciliation is outstanding.
+Mixed-seller orders are handled item by item. Admins retain control of the
+WooCommerce order status. An admin can reject payout release; the reseller can
+update the item status and submit it for release again.
+
+The reseller sees available balances by currency under **Earnings** and can
+request a withdrawal up to the available balance. Requests reserve the funds.
+An administrator marks a request externally paid after arranging payment, or
+rejects it to return the reserved funds to the wallet. The wallet does not
+transfer money automatically. Existing manual payout records remain in the
+legacy payout list and are excluded from wallet credits.
+
 Member and reseller accounts are separate WordPress identities with different
 emails and sign-in pages. My Account remains the member dashboard and has no
 reseller menu. An approved reseller uses one reseller role for discounted buying

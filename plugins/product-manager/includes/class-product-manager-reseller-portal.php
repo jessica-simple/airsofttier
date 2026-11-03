@@ -263,7 +263,8 @@ class Airsoft_Product_Manager_Reseller_Portal {
   }
   $page = max( 1, absint( $_GET['purchase_page'] ?? 1 ) );
   $result = wc_get_orders( array( 'customer_id' => get_current_user_id(), 'type' => 'shop_order', 'limit' => 20, 'page' => $page, 'paginate' => true ) );
-  echo '<h3>My purchases</h3><div class="airsoft-table-wrap"><table class="airsoft-table"><thead><tr><th>Order</th><th>Status</th><th>Total</th><th>Action</th></tr></thead><tbody>';
+  $shop = wc_get_page_permalink( 'shop' );
+  echo '<div class="airsoft-panel-heading airsoft-purchases-heading"><h3>My purchases</h3><a class="airsoft-button airsoft-button-primary" href="' . esc_url( $shop ? $shop : home_url( '/' ) ) . '">Go to shop</a></div><div class="airsoft-table-wrap"><table class="airsoft-table"><thead><tr><th>Order</th><th>Status</th><th>Total</th><th>Action</th></tr></thead><tbody>';
   foreach ( $result->orders as $order ) {
    echo '<tr><td>#' . esc_html( $order->get_order_number() ) . '</td><td><span class="airsoft-badge">' . esc_html( wc_get_order_status_name( $order->get_status() ) ) . '</span></td><td>' . wp_kses_post( $order->get_formatted_order_total() ) . '</td><td><a class="airsoft-button" href="' . esc_url( add_query_arg( array( 'section' => 'purchases', 'view_order' => $order->get_id() ), self::url() ) ) . '">View order</a></td></tr>';
   }

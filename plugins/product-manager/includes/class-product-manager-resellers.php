@@ -56,9 +56,11 @@ class Airsoft_Product_Manager_Resellers {
    if ( self::approved() ) {
     if ( 'save_product' === $action ) { Airsoft_Product_Manager_Reseller_Products::save(); }
     elseif ( 'ship' === $action ) { Airsoft_Product_Manager_Reseller_Orders::ship(); }
+    elseif ( 'order_status' === $action ) { Airsoft_Product_Manager_Reseller_Orders::request_status(); }
+    elseif ( 'withdraw' === $action ) { Airsoft_Product_Manager_Reseller_Orders::withdraw(); }
    } else { throw new Exception( 'Reseller approval is required.' ); }
   } catch ( Exception $e ) { wc_add_notice( $e->getMessage(), 'error' ); }
-  $destination = 'ship' === $action ? array( 'section' => 'sales', 'order_id' => absint( $_POST['order_id'] ?? 0 ) ) : array( 'section' => 'products' );
+  $destination = in_array( $action, array( 'ship', 'order_status' ), true ) ? array( 'section' => 'sales', 'order_id' => absint( $_POST['order_id'] ?? 0 ) ) : ( 'withdraw' === $action ? array( 'section' => 'earnings' ) : array( 'section' => 'products' ) );
   wp_safe_redirect( add_query_arg( $destination, self::url() ) );
   exit;
  }

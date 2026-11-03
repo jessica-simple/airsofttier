@@ -9,6 +9,23 @@ class Airsoft_Product_Manager_Reseller_Dashboard {
 
  private static function icon( $name ) { return '<span class="dashicons dashicons-' . esc_attr( $name ) . '" aria-hidden="true"></span>'; }
 
+ private static function order_statuses() {
+  $statuses = array();
+  foreach ( wc_get_order_statuses() as $status => $label ) {
+   $statuses[ preg_replace( '/^wc-/', '', $status ) ] = $label;
+  }
+  foreach ( get_post_stati( array( 'show_in_admin_status_list' => true ), 'objects' ) as $status => $details ) {
+   if ( 0 === strpos( $status, 'wc-' ) ) { $statuses[ substr( $status, 3 ) ] = $details->label; }
+  }
+  return $statuses;
+ }
+
+ private static function seller_status_label( $status ) {
+  if ( in_array( $status, array( 'confirmed', 'on-delivery' ), true ) ) { $status = 'processing'; }
+  elseif ( 'complete' === $status ) { $status = 'completed'; }
+  return $status ? wc_get_order_status_name( $status ) : 'Not set';
+ }
+
  private static function money( $totals ) {
   if ( ! $totals ) { $totals = array( get_woocommerce_currency() => 0 ); }
   $output = array();
@@ -80,7 +97,7 @@ class Airsoft_Product_Manager_Reseller_Dashboard {
   $counts = Airsoft_Product_Manager_Reseller_Products::counts();
   echo '<section class="airsoft-shipping-attention" aria-label="Shipment tasks"><span class="airsoft-attention-icon">' . self::icon( 'car' ) . '</span><div><strong>' . ( $summary['to_ship'] ? absint( $summary['to_ship'] ) . ' order(s) ready to ship' : 'All caught up' ) . '</strong><p class="airsoft-muted">' . ( $summary['to_ship'] ? 'Paid orders waiting for your shipment update' : 'No paid orders currently need shipment' ) . '</p></div><a class="airsoft-button" href="' . esc_url( self::link( 'sales' ) ) . '">View orders</a></section><div class="airsoft-stats">';
   self::stat( 'Live products', esc_html( $counts['publish'] ), $counts['pending'] . ' awaiting approval · ' . $counts['draft'] . ' draft(s)' );
-  self::stat( 'Eligible for payout', self::money( $summary['eligible'] ), 'After commission, item refunds and recorded payouts' );
+  self::stat( 'Awaiting payout release', self::money( $summary['eligible'] ), 'Completed reseller items awaiting admin release' );
   self::stat( 'Payouts recorded', self::money( $summary['paid'] ), 'Payments recorded by the administrator' );
   echo '</div><section class="airsoft-panel"><div class="airsoft-panel-heading"><h3>Orders needing attention</h3><a href="' . esc_url( self::link( 'sales' ) ) . '">View all orders</a></div>';
   self::order_table( $summary['attention'], 'No orders currently need shipment.' );
@@ -91,11 +108,35 @@ class Airsoft_Product_Manager_Reseller_Dashboard {
   echo '<div class="airsoft-table-wrap airsoft-order-list"><table class="airsoft-table airsoft-order-table"><thead><tr><th scope="col">Order / item</th><th scope="col">Item total</th><th scope="col">Status</th><th scope="col">Action</th></tr></thead><tbody>';
   foreach ( $entries as $entry ) {
    $order = $entry['order']; $item = $entry['item'];
+   $product = $item->get_product();
+   $image = $product ? $product->get_image( 'woocommerce_thumbnail' ) : '';
+   $created = $order->get_date_created();
    $label = wc_get_order_status_name( $order->get_status() );
    if ( $entry['needs_shipment'] ) { $label = 'To ship'; }
    elseif ( $entry['tracking'] && $order->has_status( array( 'processing', 'completed' ) ) ) { $label = 'Shipped'; }
+   if ( $entry['seller_status'] ) { $label = self::seller_status_label( $entry['seller_status'] ); }
    $url = self::link( 'sales', array( 'order_id' => $order->get_id() ) ) . '#reseller-item-' . $item->get_id();
-   echo '<tr><td><strong>#' . esc_html( $order->get_order_number() ) . '</strong><span class="airsoft-cell-detail">' . esc_html( $item->get_name() ) . ' × ' . esc_html( $item->get_quantity() ) . '</span></td><td>' . wp_kses_post( wc_price( $item->get_total(), array( 'currency' => $order->get_currency() ) ) ) . '</td><td><span class="airsoft-badge ' . ( $entry['needs_shipment'] ? 'airsoft-badge-wait' : '' ) . '">' . esc_html( $label ) . '</span></td><td><a class="airsoft-button" href="' . esc_url( $url ) . '">' . ( $entry['can_ship'] && ! $entry['tracking'] ? 'Ship order' : 'View order' ) . '</a></td></tr>';
+   $can_update_status = ! $order->has_status( array( 'cancelled', 'failed', 'refunded' ) ) && ! $entry['paid'] && ! $entry['wallet_credited'];
+   $status_form_id = 'airsoft-order-status-' . absint( $item->get_id() );
+   echo '<tr><td data-label="Order item"><div class="airsoft-order-product">';
+   if ( $image ) { echo '<span class="airsoft-order-product-image">' . wp_kses_post( $image ) . '</span>'; }
+   echo '<div class="airsoft-order-product-copy"><strong>' . esc_html( $item->get_name() ) . '</strong><span class="airsoft-cell-detail">Order #' . esc_html( $order->get_order_number() ) . ( $created ? ' · ' . esc_html( wc_format_datetime( $created ) ) : '' ) . '</span><span class="airsoft-cell-detail">Quantity: ' . esc_html( $item->get_quantity() ) . '</span></div></div></td><td data-label="Item total"><strong class="airsoft-order-total">' . wp_kses_post( wc_price( $item->get_total(), array( 'currency' => $order->get_currency() ) ) ) . '</strong><span class="airsoft-cell-detail">After discounts · excl. tax</span></td><td data-label="Status">';
+   if ( $can_update_status ) {
+    echo '<form id="' . esc_attr( $status_form_id ) . '" class="airsoft-order-status-form" method="post"><input type="hidden" name="order_id" value="' . absint( $order->get_id() ) . '"><input type="hidden" name="item_id" value="' . absint( $item->get_id() ) . '">';
+    wp_nonce_field( 'airsoft_reseller', 'airsoft_nonce' );
+    echo '<p class="form-field form-field-wide wc-order-status"><label for="' . esc_attr( $status_form_id . '-select' ) . '">Status</label><select id="' . esc_attr( $status_form_id . '-select' ) . '" name="seller_status">';
+    $selected_status = in_array( $entry['seller_status'], array( 'confirmed', 'on-delivery' ), true ) ? 'processing' : ( 'complete' === $entry['seller_status'] ? 'completed' : $entry['seller_status'] );
+    foreach ( self::order_statuses() as $status => $text ) { echo '<option value="' . esc_attr( $status ) . '"' . ( $selected_status === $status ? ' selected' : '' ) . '>' . esc_html( $text ) . '</option>'; }
+    echo '</select></p></form>';
+   } else {
+   echo '<span class="airsoft-badge ' . ( in_array( $entry['seller_status'], array( 'complete', 'completed' ), true ) ? 'airsoft-badge-good' : ( $entry['needs_shipment'] ? 'airsoft-badge-wait' : '' ) ) . '">' . esc_html( $label ) . '</span>';
+   }
+   if ( 'rejected' === $entry['payout_review'] ) { echo '<span class="airsoft-cell-detail airsoft-review-rejected">Payout release declined</span>'; }
+   elseif ( $entry['wallet_credited'] ) { echo '<span class="airsoft-cell-detail">Released to wallet</span>'; }
+   elseif ( in_array( $entry['seller_status'], array( 'complete', 'completed' ), true ) ) { echo '<span class="airsoft-cell-detail">Awaiting payout release</span>'; }
+   echo '</td><td class="airsoft-order-actions" data-label="Actions">';
+   if ( $can_update_status ) { echo '<button class="airsoft-button airsoft-button-primary airsoft-order-save-status" form="' . esc_attr( $status_form_id ) . '" name="airsoft_action" value="order_status">Save</button> '; }
+   echo '<a class="airsoft-button airsoft-order-view" href="' . esc_url( $url ) . '">View</a></td></tr>';
   }
   if ( ! $entries ) { echo '<tr><td colspan="4">' . esc_html( $empty ) . '</td></tr>'; }
   echo '</tbody></table></div>';
@@ -106,7 +147,7 @@ class Airsoft_Product_Manager_Reseller_Dashboard {
   if ( $id ) { self::shipment( $id ); return; }
   $page = max( 1, absint( $_GET['orders_page'] ?? 1 ) );
   $data = Airsoft_Product_Manager_Reseller_Orders::portal_page( $page );
-  echo '<section class="airsoft-panel"><div class="airsoft-panel-heading"><h3>Customer orders</h3><span class="airsoft-muted">Only your items are shown</span></div>';
+  echo '<section class="airsoft-panel"><div class="airsoft-panel-heading"><h3>Customer orders</h3><span class="airsoft-muted">Set each item’s status here. Only your items are shown.</span></div>';
   self::order_table( $data['items'], 'No customer orders yet.' );
   self::pagination( 'sales', $page, $data['more'] );
   echo '</section>';
@@ -119,8 +160,22 @@ class Airsoft_Product_Manager_Reseller_Dashboard {
   $order = $entries[0]['order'];
   foreach ( $entries as $entry ) {
    $item = $entry['item'];
-   echo '<section class="airsoft-panel" id="reseller-item-' . absint( $item->get_id() ) . '"><div class="airsoft-panel-heading"><h3>Order #' . esc_html( $order->get_order_number() ) . '</h3><span class="airsoft-badge">' . esc_html( wc_get_order_status_name( $order->get_status() ) ) . '</span></div><p>' . esc_html( $item->get_name() ) . ' × ' . esc_html( $item->get_quantity() ) . '</p>';
-   if ( $entry['tracking'] ) { echo '<p class="airsoft-panel-note">Tracking: ' . esc_html( $entry['tracking'] ) . '</p>'; }
+   $product = $item->get_product();
+   $image = $product ? $product->get_image( 'woocommerce_thumbnail' ) : '';
+   $created = $order->get_date_created();
+   echo '<section class="airsoft-panel airsoft-order-detail" id="reseller-item-' . absint( $item->get_id() ) . '"><div class="airsoft-panel-heading"><div><h3>Order #' . esc_html( $order->get_order_number() ) . '</h3>' . ( $created ? '<span class="airsoft-cell-detail">Placed ' . esc_html( wc_format_datetime( $created ) ) . '</span>' : '' ) . '</div><span class="airsoft-badge">' . esc_html( wc_get_order_status_name( $order->get_status() ) ) . '</span></div><div class="airsoft-detail-product">';
+   if ( $image ) { echo '<span class="airsoft-order-product-image">' . wp_kses_post( $image ) . '</span>'; }
+   echo '<div class="airsoft-detail-product-copy"><strong>' . esc_html( $item->get_name() ) . '</strong><span class="airsoft-cell-detail">Quantity: ' . esc_html( $item->get_quantity() ) . '</span></div><strong class="airsoft-order-total">' . wp_kses_post( wc_price( $item->get_total(), array( 'currency' => $order->get_currency() ) ) ) . '</strong></div>';
+   if ( $entry['tracking'] ) { echo '<p class="airsoft-panel-note airsoft-tracking-note"><span class="airsoft-muted">Tracking</span><strong>' . esc_html( $entry['tracking'] ) . '</strong></p>'; }
+   echo '<p class="airsoft-current-status">Current reseller status: <strong>' . esc_html( self::seller_status_label( $entry['seller_status'] ) ) . '</strong></p>';
+   if ( 'rejected' === $entry['payout_review'] ) { echo '<p class="airsoft-panel-note">Payout release was rejected. Update the status to submit it again.</p>'; }
+   if ( ! $order->has_status( array( 'cancelled', 'failed', 'refunded' ) ) && ! $entry['paid'] && ! $entry['wallet_credited'] ) {
+    echo '<form class="airsoft-detail-status" method="post">'; wp_nonce_field( 'airsoft_reseller', 'airsoft_nonce' );
+    echo '<input type="hidden" name="order_id" value="' . absint( $order->get_id() ) . '"><input type="hidden" name="item_id" value="' . absint( $item->get_id() ) . '"><label><span>Status</span><select name="seller_status">';
+    $selected_status = in_array( $entry['seller_status'], array( 'confirmed', 'on-delivery' ), true ) ? 'processing' : ( 'complete' === $entry['seller_status'] ? 'completed' : $entry['seller_status'] );
+    foreach ( self::order_statuses() as $status => $text ) { echo '<option value="' . esc_attr( $status ) . '"' . ( $selected_status === $status ? ' selected' : '' ) . '>' . esc_html( $text ) . '</option>'; }
+    echo '</select></label> <button class="airsoft-button airsoft-button-primary" name="airsoft_action" value="order_status">Save status</button></form>';
+   }
    if ( $entry['can_ship'] ) {
     echo '<div class="airsoft-address"><h4>Deliver to</h4>' . wp_kses_post( $order->get_formatted_shipping_address() ) . '</div><form class="airsoft-shipment-form" method="post">';
     wp_nonce_field( 'airsoft_reseller', 'airsoft_nonce' );
@@ -133,8 +188,16 @@ class Airsoft_Product_Manager_Reseller_Dashboard {
  }
 
  private static function earnings( $summary ) {
+  $balances = Airsoft_Product_Manager_Reseller_Orders::wallet_balances( get_current_user_id() );
+  echo '<section class="airsoft-panel"><h3>Wallet</h3><p>Available: ' . self::money( $balances ) . '</p><p class="airsoft-muted">Admin released completed sales are credited here. Withdrawal requests are paid outside the site after admin review.</p><form method="post">';
+  wp_nonce_field( 'airsoft_reseller', 'airsoft_nonce' );
+  echo '<label>Currency <select name="currency">'; foreach ( $balances as $currency => $amount ) { if ( $amount > 0 ) { echo '<option value="' . esc_attr( $currency ) . '">' . esc_html( $currency ) . '</option>'; } } echo '</select></label> ';
+  Airsoft_Product_Manager_Resellers::field( 'Withdrawal amount', 'amount', '', 'number', 'required min="0.01" step="0.01"' );
+  echo '<button class="airsoft-button airsoft-button-primary" name="airsoft_action" value="withdraw">Request withdrawal</button></form></section>';
+  $requests = Airsoft_Product_Manager_Reseller_Orders::wallet_withdrawals( get_current_user_id() );
+  if ( $requests ) { echo '<section class="airsoft-panel"><h3>Withdrawal history</h3>'; foreach ( $requests as $request ) { echo '<p>' . wp_kses_post( wc_price( $request->amount, array( 'currency' => $request->currency ) ) ) . ' · ' . esc_html( $request->state ) . ' · ' . esc_html( $request->created_at ) . ' UTC</p>'; } echo '</section>'; }
   echo '<div class="airsoft-stats">';
-  self::stat( 'Eligible for payout', self::money( $summary['eligible'] ), 'Paid, completed orders with no refund hold' );
+  self::stat( 'Awaiting payout release', self::money( $summary['eligible'] ), 'Paid, completed reseller items with no refund hold' );
   self::stat( 'Awaiting completion or review', self::money( $summary['pending'] ), 'Earnings from paid orders still in progress or on hold' );
   self::stat( 'Payouts recorded', self::money( $summary['paid'] ), 'Payments recorded by the administrator' );
   echo '</div>';
@@ -153,6 +216,8 @@ class Airsoft_Product_Manager_Reseller_Dashboard {
      $delta = $entry['earned'] - (float) $paid->amount;
      if ( abs( $delta ) > 0.00001 ) { echo '<span class="airsoft-cell-detail">Adjustment: ' . wp_kses_post( wc_price( $delta, array( 'currency' => $order->get_currency() ) ) ) . '</span>'; }
     }
+   } elseif ( $entry['wallet_credited'] ) {
+    echo '<span class="airsoft-badge airsoft-badge-good">Credited to wallet</span>';
    } else {
     $label = $entry['earned'] <= 0 ? 'No earnings' : ( $entry['hold'] ? 'Refund review' : ( $entry['eligible'] ? 'Eligible' : 'Pending completion' ) );
     echo '<span class="airsoft-badge">' . esc_html( $label ) . '</span>';
