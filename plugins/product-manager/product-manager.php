@@ -36,12 +36,15 @@ require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-resel
 require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-reseller-portal.php';
 require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-reseller-pricing.php';
 require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-reseller-products.php';
+require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-storefront-product-sources.php';
+require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-reseller-admin-products.php';
 require_once AIRSOFT_PRODUCT_MANAGER_DIR . 'includes/class-product-manager-reseller-orders.php';
 Airsoft_Product_Manager_Resellers::init();
 Airsoft_Product_Manager_Reseller_Emails::init();
 Airsoft_Product_Manager_Reseller_Portal::init();
 Airsoft_Product_Manager_Reseller_Pricing::init();
 Airsoft_Product_Manager_Reseller_Products::init();
+Airsoft_Product_Manager_Reseller_Admin_Products::init();
 Airsoft_Product_Manager_Reseller_Orders::init();
 Airsoft_Product_Manager_Cart_Followups::init();
 Airsoft_Product_Manager_Invalid_Cart::init();

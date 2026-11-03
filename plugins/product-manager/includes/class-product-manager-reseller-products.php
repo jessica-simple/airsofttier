@@ -23,6 +23,7 @@ class Airsoft_Product_Manager_Reseller_Products {
    $normal = $product->get_regular_price( 'edit' );
    $special = $product->get_meta( '_airsoft_reseller_price' );
    echo '<tr><td><div class="airsoft-product-name">' . wp_kses_post( $product->get_image( array( 40, 40 ) ) ) . '<span>' . esc_html( $product->get_name() ) . '</span></div></td><td>' . ( '' !== $normal ? wp_kses_post( wc_price( $normal ) ) : '—' ) . '</td><td>' . ( '' !== $special ? wp_kses_post( wc_price( $special ) ) : 'Not set' ) . '</td><td>' . esc_html( $product->get_manage_stock() ? $product->get_stock_quantity() : 'Not tracked' ) . '</td><td><span class="airsoft-badge ' . ( 'publish' === $product->get_status() ? 'airsoft-badge-good' : 'airsoft-badge-wait' ) . '">' . esc_html( $labels[$product->get_status()] ?? $product->get_status() ) . '</span></td><td>';
+   if ( 'publish' === $product->get_status() ) { echo '<a class="airsoft-button" href="' . esc_url( $product->get_permalink() ) . '">View product</a> '; }
    if ( $product->is_type( 'simple' ) ) { echo '<a class="airsoft-button" href="' . esc_url( add_query_arg( array( 'section' => 'product-edit', 'edit_product' => $product->get_id() ), Airsoft_Product_Manager_Resellers::url() ) ) . '">Edit</a>'; }
    else { echo '<span class="airsoft-muted">Contact admin to edit variations</span>'; }
    echo '</td></tr>';

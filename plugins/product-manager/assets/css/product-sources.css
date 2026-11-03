@@ -1,0 +1,33 @@
+.airsoft-product-source-tabs {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 0 0 18px;
+}
+
+.airsoft-product-source-tab {
+	display: inline-flex;
+	align-items: center;
+	min-height: 40px;
+	padding: 0 16px;
+	border: 1px solid #d9dee7;
+	border-radius: 999px;
+	background: #fff;
+	color: #18202d;
+	font-size: 14px;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.airsoft-product-source-tab:hover,
+.airsoft-product-source-tab:focus-visible {
+	border-color: #18202d;
+	color: #18202d;
+}
+
+.airsoft-product-source-tab[aria-current="page"] {
+	border-color: #18202d;
+	background: #18202d;
+	color: #fff;
+}
