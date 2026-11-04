@@ -33,6 +33,9 @@ class Airsoft_Product_Manager_Reseller_Portal {
   wp_enqueue_style( 'airsoft-reseller', AIRSOFT_PRODUCT_MANAGER_URL . 'assets/css/reseller.css', array(), filemtime( AIRSOFT_PRODUCT_MANAGER_DIR . 'assets/css/reseller.css' ) );
   wp_enqueue_style( 'dashicons' );
   wp_enqueue_script( 'wc-account-i18n' );
+  if ( 'portal' === self::page_key() ) {
+   wp_enqueue_script( 'airsoft-reseller-drawer', AIRSOFT_PRODUCT_MANAGER_URL . 'assets/js/reseller-drawer.js', array(), filemtime( AIRSOFT_PRODUCT_MANAGER_DIR . 'assets/js/reseller-drawer.js' ), true );
+  }
   if ( ( self::recaptcha_enabled( 'register' ) || self::recaptcha_enabled( 'login' ) ) && function_exists( 'mfn_recaptcha_enqueue_script' ) ) {
    mfn_recaptcha_enqueue_script();
   }
