@@ -57,10 +57,10 @@ class Airsoft_Product_Manager_Reseller_Applications_Table extends WP_List_Table 
 
  protected function column_username( $user ) {
   $login = esc_html( $user->user_login );
-  if ( current_user_can( 'edit_user', $user->ID ) ) { $login = '<a href="' . esc_url( get_edit_user_link( $user->ID ) ) . '">' . $login . '</a>'; }
+  if ( current_user_can( 'edit_user', $user->ID ) ) { $login = '<a href="' . esc_url( get_edit_user_link( $user->ID ) . '#airsoft-reseller-bank-details' ) . '">' . $login . '</a>'; }
   $output = get_avatar( $user->ID, 32 ) . '<strong>' . $login . '</strong>';
   $actions = array();
-  if ( current_user_can( 'edit_user', $user->ID ) ) { $actions['edit'] = '<a href="' . esc_url( get_edit_user_link( $user->ID ) ) . '">Edit user</a>'; }
+  if ( current_user_can( 'edit_user', $user->ID ) ) { $actions['edit'] = '<a href="' . esc_url( get_edit_user_link( $user->ID ) . '#airsoft-reseller-bank-details' ) . '">View reseller details</a>'; }
   return $output . $this->row_actions( $actions );
  }
 

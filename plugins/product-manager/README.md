@@ -53,6 +53,7 @@ selector and **Save status** button for each active item. A reseller can manuall
 items. The status saves immediately. Resellers manage their bank account holder,
 bank name, account number and bank or branch address under **Reseller Portal →
 Bank details**. Authorized admins can view those details under **Product Manager →
+Resellers** by clicking the reseller's username, or under **Product Manager →
 Reseller payouts**. The admin's default destination controls wallet availability:
 Wallet enables wallet credits and withdrawals; Bank pauses them, hides the wallet
 and withdrawal panels from resellers, and keeps all existing balances and ledger

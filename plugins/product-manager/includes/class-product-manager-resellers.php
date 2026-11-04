@@ -12,6 +12,8 @@ class Airsoft_Product_Manager_Resellers {
   add_action( 'woocommerce_account_reseller_endpoint', array( __CLASS__, 'dashboard' ) );
   add_action( 'template_redirect', array( __CLASS__, 'handle' ) );
   add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ) );
+  add_action( 'show_user_profile', array( __CLASS__, 'user_bank_details' ) );
+  add_action( 'edit_user_profile', array( __CLASS__, 'user_bank_details' ) );
   add_action( 'admin_post_airsoft_reseller_review', array( __CLASS__, 'review' ) );
  }
 
@@ -75,6 +77,17 @@ class Airsoft_Product_Manager_Resellers {
  public static function admin_menu() {
   $hook = add_submenu_page( Airsoft_Product_Manager_Category_Page::PAGE_SLUG, 'Resellers', 'Resellers', 'manage_woocommerce', 'airsoft-resellers', array( __CLASS__, 'admin_page' ) );
   add_action( 'load-' . $hook, array( __CLASS__, 'table_actions' ) );
+ }
+
+ public static function user_bank_details( $user ) {
+  if ( ! $user || ! current_user_can( 'manage_woocommerce' ) || ! Airsoft_Product_Manager_Reseller_Portal::is_reseller_account( $user->ID ) ) { return; }
+  $details = Airsoft_Product_Manager_Reseller_Orders::bank_details( $user->ID );
+  echo '<h2 id="airsoft-reseller-bank-details">Reseller bank details</h2><table class="form-table" role="presentation"><tbody>';
+  foreach ( array( 'account_holder' => 'Account holder', 'bank_name' => 'Bank name', 'account_number' => 'Account number', 'bank_address' => 'Bank or branch address' ) as $key => $label ) {
+   $value = trim( $details[ $key ] ?? '' );
+   echo '<tr><th><label>' . esc_html( $label ) . '</label></th><td>' . ( $value ? nl2br( esc_html( $value ) ) : '<span class="description">Not provided</span>' ) . '</td></tr>';
+  }
+  echo '</tbody></table>';
  }
 
  public static function list_filters( $input ) {
