@@ -88,11 +88,11 @@ class Airsoft_Product_Manager_Notifications {
         }
     }
 
-    public static function order_event( $order, $event, $message, $event_id, $pay = false ) {
+    public static function order_event( $order, $event, $message, $event_id, $pay = false, $once_override = null ) {
         if ( ! $order instanceof WC_Order || $order instanceof WC_Order_Refund || ! $order->get_customer_id() ) {
             return;
         }
-        $once = in_array( $event, array( 'order_placed', 'payment_received', 'order_shipped' ), true ) || 'initial-payment' === $event_id;
+        $once = null === $once_override ? ( in_array( $event, array( 'order_placed', 'payment_received', 'order_shipped' ), true ) || 'initial-payment' === $event_id ) : (bool) $once_override;
         $marker = '_airsoft_notified_' . sanitize_key( $event );
         if ( $once && $order->get_meta( $marker, true ) ) {
             return;
@@ -165,7 +165,9 @@ class Airsoft_Product_Manager_Notifications {
     }
 
     public static function shipped( $order_id, $shipment_id = 'shipped' ) {
-        self::order_event( wc_get_order( $order_id ), 'order_shipped', __( 'Order #%s has shipped. View your order for delivery details.', 'product-manager' ), 'shipment:' . sanitize_text_field( $shipment_id ) );
+        $per_shipment = 'shipped' !== (string) $shipment_id;
+        $message = $per_shipment ? __( 'Part of order #%s has shipped. View your order for delivery details.', 'product-manager' ) : __( 'Order #%s has shipped. View your order for delivery details.', 'product-manager' );
+        self::order_event( wc_get_order( $order_id ), 'order_shipped', $message, 'shipment:' . sanitize_text_field( $shipment_id ), false, ! $per_shipment );
     }
 
     public static function tracking( $order ) {

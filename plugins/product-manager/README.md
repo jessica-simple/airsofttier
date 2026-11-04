@@ -50,16 +50,26 @@ WooCommerce must be installed and active.
 In **Reseller Portal → Customer orders**, the order list has a **Reseller status**
 selector and **Save status** button for each active item. A reseller can manually set
 **Confirmed**, **On delivery**, or **Complete** for each of their own order
-items. The status saves immediately. Admins control payout release under
-**Product Manager → Reseller payouts**. They can release a completed item's
-post-commission earnings to the reseller wallet once, provided the WooCommerce
-order is paid and completed and no refund reconciliation is outstanding.
+items. The status saves immediately. Resellers manage their bank account holder,
+bank name, account number and bank or branch address under **Reseller Portal →
+Bank details**. Authorized admins can view those details under **Product Manager →
+Reseller payouts**. The admin's default destination controls wallet availability:
+Wallet enables wallet credits and withdrawals; Bank pauses them, hides the wallet
+and withdrawal panels from resellers, and keeps all existing balances and ledger
+records. Selecting Wallet again restores the existing balances and history. In
+Wallet mode, admins can choose Wallet or Bank separately for each completed item.
+Bank transfers are arranged outside the site; admins record the transfer reference
+when marking an item paid. Bank details
+used for a payout are saved with its record, so later profile changes do not alter
+the payout history. Each item can be released once, after the WooCommerce order is
+paid and completed and no refund reconciliation or return review is outstanding.
 Mixed-seller orders are handled item by item. Admins retain control of the
 WooCommerce order status. An admin can reject payout release; the reseller can
 update the item status and submit it for release again.
 
-The reseller sees available balances by currency under **Earnings** and can
-request a withdrawal up to the available balance. Requests reserve the funds.
+When Wallet is selected, the reseller sees available balances by currency under
+**Earnings** and can request a withdrawal up to the available balance. Requests
+reserve the funds.
 An administrator marks a request externally paid after arranging payment, or
 rejects it to return the reserved funds to the wallet. The wallet does not
 transfer money automatically. Existing manual payout records remain in the
@@ -91,9 +101,13 @@ accounts, and search/status filters are preserved after a review.
    a slug already exists. Use the actual links under **Product Manager → Resellers**.
    Add the registration/login pages to the site's public menu as desired.
    Exclude all three pages from page caching.
-2. Set the commission percentage under **Product Manager → Reseller payouts**.
-   It defaults to **0%**. Each order item snapshots its seller and commission at
-   checkout, so later settings and product ownership changes do not alter orders.
+2. Set the commission percentage and default payout destination under
+   **Product Manager → Reseller payouts**. Commission defaults to **0%** and payout
+   destination defaults to **Wallet**. Selecting **Bank** hides the reseller wallet
+   and pauses credits and withdrawals without deleting existing balances or history.
+   Selecting **Wallet** again restores access to those balances. Each order item
+   snapshots its seller and commission at checkout, so later settings and product
+   ownership changes do not alter orders.
 3. Applicants register from the separate registration page while logged out,
    using an email not already attached to any account. They can sign in through
    Reseller Login to see their application status. Approve applications under
@@ -104,13 +118,24 @@ accounts, and search/status filters are preserved after a review.
    products in WooCommerce **Products**, then publish approved listings.
 5. Resellers receive email notifications when orders enter a paid processing or
    completed state. **Customer orders** shows only their order items and
-   the delivery address needed to fulfil the order. They add carrier/tracking
-   details per order item; customers see these in their order and customer notes.
+   the delivery address needed to fulfil the order. Sellers can filter orders by
+   order/product text, status and date, then export the matching records to CSV.
+   They add a carrier, tracking number and optional tracking link per order item;
+   customers see the link in their order and receive a shipment notification.
 6. Admins review fulfilment and mark the WooCommerce order completed. Resellers
    cannot complete a whole order that may contain other sellers' items.
-7. Pay sellers externally, then record the payment reference per item under
-   **Reseller payouts**. Recording a payment does not transfer funds. A unique
-   ledger key prevents recording a second payment for the same item.
+7. Review eligible items under **Product Manager → Reseller payouts** and select
+   Wallet or Bank. Wallet releases are credited to the reseller balance. For Bank,
+   use the reseller's saved bank details to make the transfer externally, then
+   enter its reference to record the payout. A unique ledger key prevents a second
+   release for the same item. Resellers receive an email update for either route.
+
+8. A reseller can request a return review on a paid order item. The request is
+   shown to administrators under **Product Manager → Reseller payouts**. Approval
+   records permission to review the return only; it does not issue a refund or
+   release wallet funds. The item's payout stays on hold until the site closes the
+   return review. Process approved refunds through WooCommerce before marking the
+   review resolved so item refund reconciliation and admin-controlled payout gates apply.
 
 ### WooCommerce email sender
 
@@ -210,6 +235,30 @@ At mobile widths navigation wraps above the content and customer-order rows
 become compact cards with their shipment actions visible. Other tables retain
 their internal horizontal scrolling. No pricing, fulfilment or payout rules change.
 
+### Reseller workflow improvements (1.6.0)
+
+- Seller order rows, shipment and return notes, payout records, customer tracking,
+  and CSV exports identify the selected variation as `Product — Option: Value`.
+- The order badge, status filter and CSV use the same fulfilment status precedence:
+  seller status, shipment needed, shipped, then WooCommerce order status.
+- Seller order scans are capped at 1,000 order items per request; order number and
+  product searches are narrowed in SQL. A capped page prompts the seller to refine
+  the search or date range. Item payout, wallet credit and open return states are
+  loaded in batches.
+- Admins see paginated open return requests separately from paginated closed
+  history. The open count remains visible, and old open requests stay available to
+  the reseller on the matching order item.
+- Return requests are rejected after an item payment or wallet credit because the
+  marketplace does not have an automated clawback. For unpaid items, an open
+  request holds payout until the site resolves the review. Refunds still must be
+  processed through WooCommerce, and all releases remain admin controlled.
+- A seller shipment notification says **Part of order #X has shipped** and is
+  deduplicated per item, so mixed-seller orders can generate a separate alert for
+  each shipment.
+- Product variation prices display using WooCommerce currency formatting. A
+  variable product submission may include up to 50 options; admins manage the
+  variations after submission.
+
 ### Prices and earnings
 
 - Admins can set a reseller price on simple products and individual variations.
@@ -234,13 +283,15 @@ their internal horizontal scrolling. No pricing, fulfilment or payout rules chan
 
 ### First-version boundaries
 
-The reseller submission form supports physical **simple products** with one photo
-(JPEG, PNG or WebP, at most 5 MB). Admins can manage variations through WooCommerce.
-Resellers edit only their own simple products. Every edit takes the listing
-offline and resubmits it as pending approval. Product categories, shipping classes,
-weights and dimensions can be assigned by the admin during review. Checkout uses
-the site's existing shipping and tax setup; there are no separate seller shipping
-rates, automatic split payments, scheduled payouts or automated refund recovery.
+The reseller submission form supports physical **simple products** and products
+with up to 50 values for one variation option. Variable products use one option per
+line in the format `option | normal price | reseller price (optional) | stock`.
+Resellers edit only their own simple products; admins manage variations after the
+initial submission. Every edit takes a simple listing offline and resubmits it as
+pending approval. Product categories, shipping classes, weights and dimensions can
+be assigned by the admin during review. Checkout uses the site's existing shipping
+and tax setup; there are no separate seller shipping rates, automatic split
+payments, scheduled payouts or automated refund recovery.
 
 Keep account, cart and checkout pages excluded from page caching. Any shop or
 product page cache must vary by reseller eligibility so customer-specific prices

@@ -52,15 +52,22 @@ class Airsoft_Product_Manager_Resellers {
   if ( empty( $_POST['airsoft_action'] ) || ! is_user_logged_in() || ! Airsoft_Product_Manager_Reseller_Portal::is_page( 'portal' ) ) { return; }
   if ( ! isset( $_POST['airsoft_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['airsoft_nonce'] ) ), 'airsoft_reseller' ) ) { wp_die( 'Invalid request.' ); }
   $action = sanitize_key( wp_unslash( $_POST['airsoft_action'] ) );
+  $failed = false;
   try {
    if ( self::approved() ) {
     if ( 'save_product' === $action ) { Airsoft_Product_Manager_Reseller_Products::save(); }
     elseif ( 'ship' === $action ) { Airsoft_Product_Manager_Reseller_Orders::ship(); }
     elseif ( 'order_status' === $action ) { Airsoft_Product_Manager_Reseller_Orders::request_status(); }
+    elseif ( 'return_request' === $action ) { Airsoft_Product_Manager_Reseller_Orders::request_return(); }
     elseif ( 'withdraw' === $action ) { Airsoft_Product_Manager_Reseller_Orders::withdraw(); }
+    elseif ( 'save_bank_details' === $action ) { Airsoft_Product_Manager_Reseller_Orders::save_bank_details(); }
    } else { throw new Exception( 'Reseller approval is required.' ); }
-  } catch ( Exception $e ) { wc_add_notice( $e->getMessage(), 'error' ); }
-  $destination = in_array( $action, array( 'ship', 'order_status' ), true ) ? array( 'section' => 'sales', 'order_id' => absint( $_POST['order_id'] ?? 0 ) ) : ( 'withdraw' === $action ? array( 'section' => 'earnings' ) : array( 'section' => 'products' ) );
+  } catch ( Exception $e ) {
+   $failed = true;
+   wc_add_notice( $e->getMessage(), 'error' );
+   if ( 'save_product' === $action ) { Airsoft_Product_Manager_Reseller_Products::remember_form_input(); }
+  }
+  $destination = in_array( $action, array( 'ship', 'order_status', 'return_request' ), true ) ? array( 'section' => 'sales', 'order_id' => absint( $_POST['order_id'] ?? 0 ) ) : ( 'withdraw' === $action ? array( 'section' => 'earnings' ) : ( 'save_bank_details' === $action ? array( 'section' => 'bank-details' ) : ( 'save_product' === $action && $failed ? array( 'section' => 'product-edit', 'edit_product' => absint( $_POST['product_id'] ?? 0 ) ) : array( 'section' => 'products' ) ) ) );
   wp_safe_redirect( add_query_arg( $destination, self::url() ) );
   exit;
  }

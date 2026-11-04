@@ -14,7 +14,7 @@ class Airsoft_Product_Manager_Reseller_Portal {
   add_filter( 'template_include', array( __CLASS__, 'standalone_template' ), 100 );
   add_action( 'wp_loaded', array( __CLASS__, 'address_context' ), 5 );
   add_action( 'wp_login', array( __CLASS__, 'normalize_legacy_account' ), 10, 2 );
-  add_action( 'woocommerce_before_customer_login_form', array( __CLASS__, 'entry_links' ) );
+  add_action( 'woocommerce_after_customer_login_form', array( __CLASS__, 'entry_links' ) );
   add_filter( 'woocommerce_is_purchasable', array( __CLASS__, 'can_purchase' ), 40, 2 );
   add_filter( 'woocommerce_variation_is_purchasable', array( __CLASS__, 'can_purchase' ), 40, 2 );
   add_filter( 'woocommerce_process_login_errors', array( __CLASS__, 'member_login' ), 30, 2 );
@@ -70,7 +70,7 @@ class Airsoft_Product_Manager_Reseller_Portal {
   return self::is_reseller_account() && ! Airsoft_Product_Manager_Resellers::approved() ? false : $allowed;
  }
  public static function entry_links() {
-  echo '<p>Reseller? <a href="' . esc_url( self::url( 'login' ) ) . '">Reseller login</a> · <a href="' . esc_url( self::url( 'register' ) ) . '">Create a separate reseller account</a></p>';
+  echo '<div class="airsoft-reseller-login-wrapper"><p>Reseller? <a href="' . esc_url( self::url( 'login' ) ) . '">Reseller login</a> · <a href="' . esc_url( self::url( 'register' ) ) . '">Create a separate reseller account</a></p></div>';
  }
 
  public static function pages() {

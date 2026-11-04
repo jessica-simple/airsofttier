@@ -10,7 +10,7 @@ Product Manager adds **My Account > Notifications** with an unread count, a site
 - Payment failed, processing, on hold, completed, and cancelled: corresponding order status transitions.
 - Refund issued: each refund, including partial refunds, with its amount and currency.
 - Customer note added: customer-visible notes only; private staff notes are excluded.
-- Shipped: a `shipped` order status, or standard `_wc_shipment_tracking_items` saved through the WooCommerce order object. A completed order alone does not imply shipment. Other shipping integrations can call `do_action( 'airsoft_order_shipped', $order_id );` after confirming shipment. The alert links to the order where the integration displays tracking details.
+- Shipped: a `shipped` order status, standard `_wc_shipment_tracking_items` saved through the WooCommerce order object, or a reseller item shipment. A completed order alone does not imply shipment. Reseller shipments use `do_action( 'airsoft_order_shipped', $order_id, 'reseller-item-' . $item_id )`, create an item-deduplicated **Part of order #X has shipped** alert, and link to the customer order where tracking appears. Other shipping integrations can call `do_action( 'airsoft_order_shipped', $order_id );` after confirming the whole order shipped.
 - Cart item became unavailable: a product already in the cart is now out of stock.
 - Cart quantity unavailable: the total quantity sharing a stock pool exceeds available stock and backorders are disabled.
 

@@ -19,11 +19,21 @@ function esc_html( $v ) { return htmlspecialchars( (string) $v, ENT_QUOTES ); }
 function esc_attr( $v ) { return esc_html( $v ); }
 function esc_textarea( $v ) { return esc_html( $v ); }
 function esc_url( $v ) { return esc_html( $v ); }
+function esc_url_raw( $v ) { return $v; }
 function wp_kses_post( $v ) { return $v; }
+function wp_strip_all_tags( $v ) { return strip_tags( $v ); }
+function selected( $selected, $current = true, $echo = true ) { return (string) $selected === (string) $current ? ' selected="selected"' : ''; }
+function get_post_stati( $args = array(), $output = 'names' ) { return array(); }
+function get_transient( $key ) { return false; }
+function delete_transient( $key ) {}
+function do_action( $hook, ...$args ) {}
+function wp_parse_url( $url, $component = -1 ) { return parse_url( $url, $component ); }
 function wc_get_price_decimals() { return 2; }
 function get_woocommerce_currency() { return 'USD'; }
 function wc_price( $amount, $args = array() ) { return ( $args['currency'] ?? 'USD' ) . ' ' . number_format( (float) $amount, 2, '.', '' ); }
 function wc_get_order_status_name( $status ) { return ucfirst( $status ); }
+function wc_get_order_statuses() { return array( 'wc-processing' => 'Processing', 'wc-on-hold' => 'On hold', 'wc-completed' => 'Completed', 'wc-cancelled' => 'Cancelled', 'wc-refunded' => 'Refunded', 'wc-failed' => 'Failed' ); }
+function wc_format_datetime( $date ) { return $date->date( 'Y-m-d' ); }
 function wc_get_order( $id ) { global $orders; return $orders[$id] ?? false; }
 function wc_get_product( $id ) { global $products; return $products[$id] ?? false; }
 function wc_print_notices() {}
@@ -63,15 +73,16 @@ class DashboardProduct {
  public function get_manage_stock() { return true; }
  public function get_stock_quantity() { return 12; }
  public function is_type( $type ) { return 'simple' === $type; }
+ public function get_permalink() { return 'https://example.test/product/' . $this->id; }
 }
 class DashboardItem {
- public $id, $owner, $name, $total, $order_id, $tracking = '', $physical = true;
+ public $id, $owner, $name, $total, $order_id, $tracking = '', $physical = true, $seller_status = '';
  public function __construct( $id, $owner, $total, $name = 'Own product' ) { $this->id = $id; $this->owner = $owner; $this->total = $total; $this->name = $name; }
  public function get_id() { return $this->id; }
  public function get_order_id() { return $this->order_id; }
  public function update_meta_data( $key, $value ) { if ( '_airsoft_tracking' === $key ) { $this->tracking = $value; } }
  public function save() {}
- public function get_meta( $key ) { return array( '_airsoft_reseller_owner' => $this->owner, '_airsoft_commission_rate' => 10, '_airsoft_tracking' => $this->tracking )[$key] ?? ''; }
+ public function get_meta( $key ) { return array( '_airsoft_reseller_owner' => $this->owner, '_airsoft_commission_rate' => 10, '_airsoft_tracking' => $this->tracking, '_airsoft_tracking_number' => '', '_airsoft_tracking_carrier' => '', '_airsoft_tracking_url' => '', '_airsoft_seller_status' => $this->seller_status )[$key] ?? ''; }
  public function get_total() { return $this->total; }
  public function get_name() { return $this->name; }
  public function get_quantity() { return 1; }
@@ -90,6 +101,8 @@ class DashboardOrder {
  public function add_order_note( $note, $customer ) { $this->notes[] = $note; }
  public function get_items() { return $this->items; }
  public function get_order_number() { return (string) $this->id; }
+ public function get_formatted_billing_full_name() { return 'Customer ' . $this->id; }
+ public function get_date_created() { return new class { public function date( $format ) { return '2026-11-03'; } }; }
  public function get_total_refunded_for_item( $id ) { return $this->refunded[$id] ?? 0; }
  public function get_qty_refunded_for_item( $id ) { return $this->refunded_qty[$id] ?? 0; }
  public function get_refunds() { return $this->hold ? array( new class { public function get_amount() { return 10; } public function get_items( $types ) { return array(); } } ) : array(); }
@@ -103,9 +116,19 @@ class DashboardDB {
   foreach ( $args as $arg ) { $sql = preg_replace_callback( '/%[ds]/', function ( $m ) use ( $arg ) { return '%d' === $m[0] ? (string) (int) $arg : "'" . str_replace( "'", "''", $arg ) . "'"; }, $sql, 1 ); }
   return $sql;
  }
+ public function esc_like( $text ) { return addcslashes( $text, '_%\\' ); }
+ public function get_var( $sql ) { return 0; }
+ public function insert( $table, $data, $formats = null ) { return 1; }
+ public function update( $table, $data, $where, $formats = null, $where_formats = null ) { return 1; }
  public function get_row( $sql ) { global $payouts; preg_match( '/item_id = (\d+)/', $sql, $match ); return $payouts[(int) $match[1]] ?? false; }
  public function get_results( $sql ) {
   global $orders, $payouts;
+  if ( false !== strpos( $sql, 'item_id IN (' ) ) {
+   preg_match( '/IN \(([^)]+)\)/', $sql, $match ); $ids = array_map( 'intval', explode( ',', $match[1] ?? '' ) ); $rows = array();
+   if ( false !== strpos( $sql, 'airsoft_reseller_payouts' ) ) { foreach ( $ids as $id ) { if ( isset( $payouts[$id] ) ) { $p = $payouts[$id]; $rows[] = (object) array( 'item_id' => $id, 'amount' => $p->amount, 'currency' => $p->currency, 'reference' => $p->reference, 'paid_at' => $p->paid_at ); } } }
+   return $rows;
+  }
+  if ( false !== strpos( $sql, 'airsoft_reseller_returns' ) ) { return array(); }
   $this->calls[] = $sql; $rows = array();
   preg_match( "/m.meta_value = '(\d+)'/", $sql, $owner );
   preg_match( '/i.order_item_id < (\d+)/', $sql, $cursor );
@@ -117,8 +140,8 @@ class DashboardDB {
   } }
   usort( $rows, function ( $a, $b ) { return $b->order_item_id <=> $a->order_item_id; } );
   if ( isset( $cursor[1] ) ) { return array_slice( $rows, 0, 200 ); }
-  preg_match( '/OFFSET (\d+)/', $sql, $offset );
-  return array_slice( $rows, (int) ( $offset[1] ?? 0 ), 21 );
+  preg_match( '/OFFSET (\d+)/', $sql, $offset ); preg_match( '/LIMIT (\d+)/', $sql, $limit );
+  return array_slice( $rows, (int) ( $offset[1] ?? 0 ), (int) ( $limit[1] ?? 21 ) );
  }
 }
 $wpdb = new DashboardDB();
@@ -134,7 +157,7 @@ $a = new DashboardItem( 101, 7, 100, 'Range carry bag' );
 $b = new DashboardItem( 102, 7, 50, 'Training gloves' ); $b->tracking = 'TRACK123';
 $other = new DashboardItem( 103, 9, 999, 'OTHER SELLER PRIVATE ITEM' );
 $orders[10] = new DashboardOrder( 10, 'processing', 'USD', array( 101 => $a, 102 => $b, 103 => $other ) );
-$orders[20] = new DashboardOrder( 20, 'completed', 'USD', array( 201 => new DashboardItem( 201, 7, 200 ) ) ); $orders[20]->refunded[201] = -50;
+$orders[20] = new DashboardOrder( 20, 'completed', 'USD', array( 201 => new DashboardItem( 201, 7, 200 ) ) ); $orders[20]->items[201]->seller_status = 'completed'; $orders[20]->refunded[201] = -50;
 $orders[30] = new DashboardOrder( 30, 'completed', 'HKD', array( 301 => new DashboardItem( 301, 7, 300 ) ) ); $orders[30]->refunded[301] = -30;
 $payouts[301] = (object) array( 'amount' => 270, 'currency' => 'HKD', 'reference' => 'PAID123', 'paid_at' => '2026-10-29 00:00:00' );
 $orders[40] = new DashboardOrder( 40, 'completed', 'USD', array( 401 => new DashboardItem( 401, 7, 80 ) ) ); $orders[40]->hold = true;
@@ -170,7 +193,7 @@ verify( false !== strpos( $html, 'airsoft-portal-topbar' ) && false !== strpos( 
 verify( 1 === substr_count( $html, '<main ' ) && 1 === substr_count( $html, '</main>' ), 'Dashboard owns exactly one main landmark' );
 verify( false !== strpos( $html, '<h2>Welcome back, My reseller store.</h2>' ) && false !== strpos( $html, 'Selling' ) && false !== strpos( $html, 'Buying' ), 'Default workspace welcomes the reseller and separates selling/buying groups' );
 verify( false !== strpos( $html, '1 order(s) ready to ship' ) && false !== strpos( $html, 'HKD 270.00' ) && false !== strpos( $html, 'Approved reseller' ), 'Shipping tasks, recorded payouts and account status use actual seller data' );
-verify( false !== strpos( $html, 'USD 135.00' ) && false !== strpos( $html, 'Ship order' ), 'Overview uses actual eligible earnings and visible shipping action' );
+verify( false !== strpos( $html, 'USD 135.00' ) && false !== strpos( $html, 'View orders' ), 'Overview uses actual eligible earnings and visible shipping action' );
 verify( false === strpos( $html, 'OTHER SELLER' ) && false === strpos( $html, 'PRIVATE ADDRESS' ), 'Overview leaks no other seller data or customer address' );
 $previews = array( 'overview' => $html );
 $a->tracking = 'TRACK DONE';
@@ -219,11 +242,16 @@ verify( array() === Airsoft_Product_Manager_Reseller_Orders::portal_page()['item
 $html = portal_html( array() );
 verify( false === strpos( $html, 'airsoft-stats' ) && false !== strpos( $html, 'member account' ), 'Member never gets approved reseller dashboard' );
 $current = 7;
-for ( $i = 1000; $i < 1201; $i++ ) { $orders[$i] = new DashboardOrder( $i, 'completed', 'USD', array( $i => new DashboardItem( $i, 7, 1 ) ) ); }
+for ( $i = 1000; $i < 1201; $i++ ) { $orders[$i] = new DashboardOrder( $i, 'completed', 'USD', array( $i => new DashboardItem( $i, 7, 1 ) ) ); $orders[$i]->items[$i]->seller_status = 'completed'; }
 $summary = Airsoft_Product_Manager_Reseller_Orders::portal_summary();
 verify( abs( $summary['eligible']['USD'] - 315.9 ) < .00001, 'Summary includes all keyset batches, beyond first 200 records' );
 $page = Airsoft_Product_Manager_Reseller_Orders::portal_page();
 verify( 20 === count( $page['items'] ) && $page['more'], 'Customer-order table remains paginated' );
+$before_queries = count( $wpdb->calls );
+for ( $i = 1201; $i < 2251; $i++ ) { $orders[$i] = new DashboardOrder( $i, 'completed', 'USD', array( $i => new DashboardItem( $i, 7, 1 ) ) ); $orders[$i]->items[$i]->seller_status = 'completed'; }
+$filtered = Airsoft_Product_Manager_Reseller_Orders::portal_page( 1, array( 'search' => 'no-such-order-or-item' ) );
+$query_delta = count( $wpdb->calls ) - $before_queries;
+verify( empty( $filtered['items'] ) && ! empty( $filtered['limited'] ) && $query_delta <= 11, 'A no-match seller filter stops at the bounded scan limit and asks the seller to refine' );
 if ( ! empty( $argv[1] ) ) {
  $css = 'file:///' . str_replace( array( '\\', ' ' ), array( '/', '%20' ), dirname( __DIR__ ) . '/assets/css/reseller.css' );
  $theme_css = 'file:///' . str_replace( array( '\\', ' ' ), array( '/', '%20' ), dirname( __DIR__, 3 ) . '/themes/betheme/css/be.css' );

@@ -642,6 +642,14 @@ span.gb-limited-deals {
 .gb-add-to-cart-wrapper .betheme-child-wishlist-loop-button a {
 	height: 42px;
 }
+.woocommerce .airsoft-reseller-login-wrapper {
+    text-align: center;
+    margin: 20px 0 0;
+}
+
+.woocommerce .airsoft-reseller-login-wrapper a {
+    color: var(--primary);
+}
 @keyframes badge-pop {
 	0% {
 		transform: scale(0.5);
