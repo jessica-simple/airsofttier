@@ -33,6 +33,21 @@ class Airsoft_Product_Manager_Reseller_Portal {
   wp_enqueue_style( 'airsoft-reseller', AIRSOFT_PRODUCT_MANAGER_URL . 'assets/css/reseller.css', array(), filemtime( AIRSOFT_PRODUCT_MANAGER_DIR . 'assets/css/reseller.css' ) );
   wp_enqueue_style( 'dashicons' );
   wp_enqueue_script( 'wc-account-i18n' );
+  if ( ( self::recaptcha_enabled( 'register' ) || self::recaptcha_enabled( 'login' ) ) && function_exists( 'mfn_recaptcha_enqueue_script' ) ) {
+   mfn_recaptcha_enqueue_script();
+  }
+ }
+
+ private static function recaptcha_enabled( $form ) {
+  if ( ! function_exists( 'mfn_opts_get' ) ) { return false; }
+  $display = mfn_opts_get( 'recaptcha-display' );
+  return is_array( $display ) && ! empty( $display[ $form ] );
+ }
+
+ private static function render_recaptcha( $form ) {
+  if ( self::recaptcha_enabled( $form ) && function_exists( 'mfn_woocommerce_form_recaptcha' ) ) {
+   mfn_woocommerce_form_recaptcha();
+  }
  }
 
  public static function page_key() {
@@ -191,6 +206,12 @@ class Airsoft_Product_Manager_Reseller_Portal {
   $login = 'reseller_' . wp_generate_password( 16, false );
   $errors = apply_filters( 'registration_errors', new WP_Error(), $login, $email );
   if ( $errors->has_errors() ) { return $errors; }
+  // Reuse BeTheme's registration validation so the reseller application checks
+  // the same reCAPTCHA response and keys as the WooCommerce register form.
+  if ( self::recaptcha_enabled( 'register' ) ) {
+   $errors = apply_filters( 'woocommerce_registration_errors', $errors, $login, $email );
+   if ( $errors->has_errors() ) { return $errors; }
+  }
   $id = wp_insert_user( array( 'user_login' => $login, 'user_email' => $email, 'user_pass' => $password, 'display_name' => $business, 'role' => self::APPLICANT_ROLE, 'meta_input' => array( '_airsoft_account_type' => 'reseller', '_airsoft_reseller_application' => 'pending', '_airsoft_reseller_business' => $business, '_airsoft_reseller_details' => $details ) ) );
   if ( is_wp_error( $id ) ) { return $id; }
   Airsoft_Product_Manager_Reseller_Emails::send( get_option( 'admin_email' ), 'New reseller application', 'Review the separate reseller account under Product Manager > Resellers.' );
@@ -213,6 +234,7 @@ class Airsoft_Product_Manager_Reseller_Portal {
   self::error();
   echo '<p>Create a separate reseller account using an email that is not registered to a member account. Admin approval is required before buying at reseller prices or selling.</p><form method="post">';
   wp_nonce_field( 'airsoft_portal', 'airsoft_portal_nonce' );
+  self::render_recaptcha( 'register' );
   Airsoft_Product_Manager_Resellers::field( 'Email', 'email', '', 'email', 'required autocomplete="email"' );
   Airsoft_Product_Manager_Resellers::field( 'Business / trading name', 'business', '', 'text', 'required maxlength="150"' );
   echo '<p><label>Tell us about your products<br><textarea name="details" required maxlength="2000"></textarea></label></p>';
@@ -229,6 +251,7 @@ class Airsoft_Product_Manager_Reseller_Portal {
   self::error();
   if ( isset( $_GET['submitted'] ) ) { echo '<p>Your application was submitted. Sign in to check its status.</p>'; }
   echo '<form method="post">'; wp_nonce_field( 'airsoft_portal', 'airsoft_portal_nonce' );
+  self::render_recaptcha( 'login' );
   Airsoft_Product_Manager_Resellers::field( 'Reseller email', 'reseller_login', '', 'email', 'required autocomplete="username"' );
   Airsoft_Product_Manager_Resellers::field( 'Password', 'reseller_password', '', 'password', 'required autocomplete="current-password"' );
   echo '<p><label><input type="checkbox" name="remember" value="1"> Remember me</label></p><button name="airsoft_portal_action" value="login">Log in</button></form><p><a href="' . esc_url( wp_lostpassword_url( self::url( 'login' ) ) ) . '">Forgot password?</a> · <a href="' . esc_url( self::url( 'register' ) ) . '">Register a reseller account</a></p></div></div>';

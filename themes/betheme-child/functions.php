@@ -535,6 +535,44 @@ function betheme_child_handle_wishlist_add_request() {
     exit;
 }
 
+// Add low-friction spam checks to WooCommerce's My Account registration form.
+add_action( 'woocommerce_register_form_start', 'betheme_child_registration_honeypot' );
+function betheme_child_registration_honeypot() {
+    ?>
+    <p class="betheme-child-registration-trap" aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;">
+        <label for="mfn_account_website">Leave this field empty</label>
+        <input type="text" id="mfn_account_website" name="mfn_account_website" value="" tabindex="-1" autocomplete="off" />
+    </p>
+    <?php
+}
+
+add_action( 'woocommerce_register_post', 'betheme_child_check_registration_spam', 10, 3 );
+function betheme_child_check_registration_spam( $username, $email, $errors ) {
+    // Count registration submissions by the direct client address. Avoid proxy
+    // headers here because they can be supplied by the requester.
+    $ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+    $ip_key = $ip ? substr( wp_hash( $ip ), 0, 24 ) : 'unknown';
+    $transient_key = 'betheme_child_reg_attempts_' . $ip_key;
+    $attempts = (int) get_transient( $transient_key );
+
+    if ( $attempts >= 5 ) {
+        $errors->add(
+            'registration_rate_limited',
+            __( 'Too many registration attempts. Please wait 15 minutes and try again.', 'betheme-child' )
+        );
+        return;
+    }
+
+    set_transient( $transient_key, $attempts + 1, 15 * MINUTE_IN_SECONDS );
+
+    if ( ! empty( $_POST['mfn_account_website'] ) ) {
+        $errors->add(
+            'registration_honeypot',
+            __( 'Unable to process your registration. Please try again.', 'betheme-child' )
+        );
+    }
+}
+
 // Hook removed - wishlist button output inline in content-product.php template only
 add_filter( 'woocommerce_loop_add_to_cart_link', 'betheme_child_append_wishlist_to_cart_button', 10, 2 );
 function betheme_child_append_wishlist_to_cart_button( $html, $product ) {
