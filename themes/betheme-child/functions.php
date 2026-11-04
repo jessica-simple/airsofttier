@@ -7,6 +7,26 @@ require_once __DIR__ . '/includes/class-mfn-child-brands-grid.php';
 require_once __DIR__ . '/includes/class-mfn-child-sale-archive.php';
 require_once __DIR__ . '/includes/class-mfn-child-new-arrivals-archive.php';
 
+// Create the public documentation page once when an administrator opens wp-admin.
+add_action('admin_init', function () {
+    if (! current_user_can('manage_options') || get_option('betheme_child_site_documentation_page_id')) {
+        return;
+    }
+
+    $page_id = wp_insert_post(array(
+        'post_type'    => 'page',
+        'post_status'  => 'publish',
+        'post_title'   => 'Site Documentation',
+        'post_name'    => 'site-documentation',
+        'post_content' => '',
+    ), true);
+
+    if (! is_wp_error($page_id) && $page_id) {
+        update_post_meta($page_id, '_wp_page_template', 'page-site-documentation.php');
+        update_option('betheme_child_site_documentation_page_id', absint($page_id));
+    }
+}, 20);
+
 add_action('wp_enqueue_scripts', function () {
     // Load parent theme style
     wp_enqueue_style('parent-style', get_template_directory_uri() . '/style.css');
@@ -21,6 +41,17 @@ add_action('wp_enqueue_scripts', function () {
     wp_enqueue_style('child-wishlist-style', get_stylesheet_directory_uri() . '/css/wishlist.css', array('child-style'));
 
 });
+
+add_action('wp_enqueue_scripts', function () {
+    if (is_page_template('page-site-documentation.php')) {
+        wp_enqueue_style(
+            'betheme-child-site-documentation',
+            get_stylesheet_directory_uri() . '/css/site-documentation.css',
+            array('child-style'),
+            filemtime(get_stylesheet_directory() . '/css/site-documentation.css')
+        );
+    }
+}, 30);
 
 add_action('wp_enqueue_scripts', function () {
     wp_enqueue_script(

@@ -497,6 +497,7 @@ class Airsoft_Product_Manager_Reseller_Orders {
   self::prime_item_state( array_map( static function( $row ) { return $row->order_item_id; }, (array) $rows ) );
   echo '<h3>Orders and earnings</h3><p>Earnings exclude tax and shipping and include coupon discounts and item refunds. Payouts require a paid, completed order. Contact the site administrator about refund adjustments after payout.</p>';
   if ( ! $rows ) { echo '<p>No reseller orders yet.</p>'; }
+  if ( $admin && $rows ) { echo '<div class="airsoft-payout-table-wrap"><table class="widefat striped airsoft-payout-table"><thead><tr><th scope="col">Order</th><th scope="col">Reseller</th><th scope="col">Item</th><th scope="col">Earnings</th><th scope="col">Payout</th><th scope="col">Action</th></tr></thead><tbody>'; }
   foreach ( array_slice( $rows, 0, 20 ) as $row ) {
    $order = wc_get_order( $row->order_id );
    if ( ! $order || 'shop_order' !== $order->get_type() ) { continue; }
@@ -505,21 +506,43 @@ class Airsoft_Product_Manager_Reseller_Orders {
    $earned = self::earning( $order, $item );
    $hold = self::needs_reconciliation( $order );
    $paid = self::paid( $item->get_id() );
-   if ( $admin ) { echo '<article class="airsoft-payout-order">'; }
-   else { echo '<hr>'; }
-   echo '<h4>Order #' . esc_html( $order->get_order_number() ) . ' — ' . esc_html( wc_get_order_status_name( $order->get_status() ) ) . '</h4><p>' . esc_html( self::item_label( $item ) ) . ' × ' . esc_html( $item->get_quantity() ) . '</p>';
-   if ( $admin ) { echo '<p>Reseller account ID: ' . absint( $item->get_meta( '_airsoft_reseller_owner' ) ) . '</p>'; }
-   echo '<p>Earnings: ' . wp_kses_post( wc_price( $earned, array( 'currency' => $order->get_currency() ) ) ) . ' · Commission: ' . esc_html( $item->get_meta( '_airsoft_commission_rate' ) ) . '%</p>';
+   if ( ! $admin ) { echo '<hr>'; }
    if ( $admin ) {
     $seller_id = absint( $item->get_meta( '_airsoft_reseller_owner' ) );
     $seller = get_userdata( $seller_id );
-    echo '<details><summary>Reseller bank details — ' . esc_html( $seller ? $seller->display_name : 'Reseller #' . $seller_id ) . '</summary>';
+    $seller_status = $item->get_meta( '_airsoft_seller_status' );
+    echo '<tr><td><strong>#' . esc_html( $order->get_order_number() ) . '</strong><span class="airsoft-payout-cell-detail">' . esc_html( wc_get_order_status_name( $order->get_status() ) ) . '</span></td><td>' . esc_html( $seller ? $seller->display_name : 'Reseller #' . $seller_id ) . '<span class="airsoft-payout-cell-detail">Account ID: ' . $seller_id . '</span><details><summary>Bank details</summary>';
     self::render_bank_snapshot( self::bank_details( $seller_id ) );
-    echo '</details>';
+    echo '</details></td><td>' . esc_html( self::item_label( $item ) ) . '<span class="airsoft-payout-cell-detail">Quantity: ' . esc_html( $item->get_quantity() ) . '</span><span class="airsoft-payout-cell-detail">Reseller status: ' . esc_html( $seller_status ? $seller_status : 'Not set' ) . '</span>';
+    if ( $item->get_meta( '_airsoft_tracking' ) ) { echo '<span class="airsoft-payout-cell-detail">Tracking: ' . esc_html( $item->get_meta( '_airsoft_tracking' ) ) . '</span>'; }
+    echo '</td><td><strong>' . wp_kses_post( wc_price( $earned, array( 'currency' => $order->get_currency() ) ) ) . '</strong><span class="airsoft-payout-cell-detail">Commission: ' . esc_html( $item->get_meta( '_airsoft_commission_rate' ) ) . '%</span></td><td>';
+    if ( $paid ) {
+     echo ( 'wallet' === ( $paid->destination ?? 'bank' ) ? 'Wallet credit recorded' : 'Bank payment recorded' ) . '<span class="airsoft-payout-cell-detail">' . wp_kses_post( wc_price( $paid->amount, array( 'currency' => $paid->currency ) ) ) . ' · ' . esc_html( $paid->reference ) . '</span><span class="airsoft-payout-cell-detail">' . esc_html( $paid->paid_at ) . ' UTC</span>';
+     if ( ! empty( $paid->bank_details ) ) { echo '<details><summary>Payment bank snapshot</summary>'; self::render_bank_snapshot( $paid->bank_details ); echo '</details>'; }
+     if ( abs( $earned - (float) $paid->amount ) > 0.00001 ) { echo '<span class="airsoft-payout-cell-detail airsoft-payout-warning">Adjustment: ' . wp_kses_post( wc_price( $earned - (float) $paid->amount, array( 'currency' => $order->get_currency() ) ) ) . '</span>'; }
+    } elseif ( self::credited( $item->get_id() ) ) { echo 'Released to reseller wallet'; }
+    else { echo self::has_open_return( $item->get_id() ) ? 'On hold — return review' : ( $hold ? 'Pending refund review' : ( $order->has_status( 'completed' ) && $order->is_paid() ? 'Eligible' : 'Pending completion' ) ); }
+    if ( $hold ) { echo '<span class="airsoft-payout-cell-detail airsoft-payout-warning">Refund allocation requires review.</span>'; }
+    if ( self::has_open_return( $item->get_id() ) ) { echo '<span class="airsoft-payout-cell-detail airsoft-payout-warning">Return review is open.</span>'; }
+    if ( 'rejected' === $item->get_meta( '_airsoft_payout_review' ) ) { echo '<span class="airsoft-payout-cell-detail">Payout rejected; reseller can resubmit.</span>'; }
+    echo '</td><td>';
+    if ( in_array( $seller_status, array( 'complete', 'completed' ), true ) && ! self::credited( $item->get_id() ) && ! $paid && 'rejected' !== $item->get_meta( '_airsoft_payout_review' ) && ! self::has_open_return( $item->get_id() ) ) {
+     echo '<form class="airsoft-payout-action-form" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="airsoft_reseller_release"><input type="hidden" name="order_id" value="' . absint( $order->get_id() ) . '"><input type="hidden" name="item_id" value="' . absint( $item->get_id() ) . '">';
+     wp_nonce_field( 'airsoft_release_' . $item->get_id() );
+     echo '<label>Destination <select name="destination">';
+     if ( self::wallet_enabled() ) { echo '<option value="wallet" selected>Wallet</option><option value="bank">Bank</option>'; }
+     else { echo '<option value="bank" selected>Bank</option>'; }
+     echo '</select></label>';
+     Airsoft_Product_Manager_Resellers::field( 'Bank reference (required for bank)', 'reference', '', 'text', 'maxlength="200"' );
+     echo '<button class="button button-primary" name="decision" value="release">Release</button> <button class="button" name="decision" value="reject">Reject</button></form>';
+    } else { echo '<span class="airsoft-payout-cell-detail">No payout action available.</span>'; }
+    echo '</td></tr>';
+    continue;
    }
+   echo '<h4>Order #' . esc_html( $order->get_order_number() ) . ' — ' . esc_html( wc_get_order_status_name( $order->get_status() ) ) . '</h4><p>' . esc_html( self::item_label( $item ) ) . ' × ' . esc_html( $item->get_quantity() ) . '</p>';
+   echo '<p>Earnings: ' . wp_kses_post( wc_price( $earned, array( 'currency' => $order->get_currency() ) ) ) . ' · Commission: ' . esc_html( $item->get_meta( '_airsoft_commission_rate' ) ) . '%</p>';
    if ( $paid ) {
     echo '<p>' . ( 'wallet' === ( $paid->destination ?? 'bank' ) ? 'Wallet credit recorded' : 'Bank payment recorded' ) . ': ' . wp_kses_post( wc_price( $paid->amount, array( 'currency' => $paid->currency ) ) ) . ' · ' . esc_html( $paid->reference ) . ' · ' . esc_html( $paid->paid_at ) . ' UTC</p>';
-    if ( $admin && ! empty( $paid->bank_details ) ) { self::render_bank_snapshot( $paid->bank_details ); }
     if ( abs( $earned - (float) $paid->amount ) > 0.00001 ) { echo '<p>Adjustment requiring admin reconciliation: ' . wp_kses_post( wc_price( $earned - (float) $paid->amount, array( 'currency' => $order->get_currency() ) ) ) . '</p>'; }
    } elseif ( self::credited( $item->get_id() ) ) { echo '<p>Released to reseller wallet.</p>'; }
    else { echo '<p>Payout: ' . ( self::has_open_return( $item->get_id() ) ? 'On hold — return review' : ( ! $hold && $order->has_status( 'completed' ) && $order->is_paid() ? 'Eligible' : 'Pending completion or refund review' ) ) . '</p>'; }
@@ -527,18 +550,6 @@ class Airsoft_Product_Manager_Reseller_Orders {
    $tracking = $item->get_meta( '_airsoft_tracking' );
    if ( $tracking ) { echo '<p>Tracking: ' . esc_html( $tracking ) . '</p>'; }
    echo '<p>Reseller status: ' . esc_html( $item->get_meta( '_airsoft_seller_status' ) ? $item->get_meta( '_airsoft_seller_status' ) : 'Not set' ) . '</p>';
-   if ( $admin && in_array( $item->get_meta( '_airsoft_seller_status' ), array( 'complete', 'completed' ), true ) && ! self::credited( $item->get_id() ) && ! $paid && 'rejected' !== $item->get_meta( '_airsoft_payout_review' ) && ! self::has_open_return( $item->get_id() ) ) {
-    echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="airsoft_reseller_release"><input type="hidden" name="order_id" value="' . absint( $order->get_id() ) . '"><input type="hidden" name="item_id" value="' . absint( $item->get_id() ) . '">';
-    wp_nonce_field( 'airsoft_release_' . $item->get_id() );
-    echo '<label>Destination <select name="destination">';
-    if ( self::wallet_enabled() ) { echo '<option value="wallet" selected>Wallet</option><option value="bank">Bank (record external payment)</option>'; }
-    else { echo '<option value="bank" selected>Bank (record external payment)</option>'; }
-    echo '</select></label> ';
-    Airsoft_Product_Manager_Resellers::field( 'Bank payment reference (required for bank)', 'reference', '', 'text', 'maxlength="200"' );
-    echo '<button name="decision" value="release">Release payout</button> <button name="decision" value="reject">Reject payout</button></form>';
-   }
-   if ( $admin && self::has_open_return( $item->get_id() ) ) { echo '<p>Payout held while a return request is reviewed.</p>'; }
-   if ( $admin && 'rejected' === $item->get_meta( '_airsoft_payout_review' ) ) { echo '<p>Payout rejected. The reseller can update the status and submit again.</p>'; }
    if ( ! $admin && $order->is_paid() && $order->has_status( array( 'processing', 'completed' ) ) ) {
     echo '<p>Deliver to:<br>' . wp_kses_post( $order->get_formatted_shipping_address() ) . '</p><form method="post">';
     wp_nonce_field( 'airsoft_reseller', 'airsoft_nonce' );
@@ -546,9 +557,8 @@ class Airsoft_Product_Manager_Reseller_Orders {
     Airsoft_Product_Manager_Resellers::field( 'Carrier and tracking number', 'tracking', $tracking, 'text', 'required maxlength="200"' );
     echo '<button name="airsoft_action" value="ship">Save shipment</button></form>';
    }
-   if ( $admin ) { echo '</article>'; }
-
   }
+  if ( $admin && $rows ) { echo '</tbody></table></div>'; }
   $page = max( 1, absint( $_GET['orders_page'] ?? 1 ) );
   $url = $admin ? admin_url( 'admin.php?page=airsoft-reseller-payouts' ) : add_query_arg( 'section', 'sales', Airsoft_Product_Manager_Resellers::url() );
   if ( $page > 1 ) { echo '<a href="' . esc_url( add_query_arg( 'orders_page', $page - 1, $url ) ) . '">Previous</a> '; }
@@ -691,7 +701,7 @@ class Airsoft_Product_Manager_Reseller_Orders {
   }
  }
  public static function menu() {
-  add_submenu_page( Airsoft_Product_Manager_Category_Page::PAGE_SLUG, 'Reseller payouts', 'Reseller payouts', 'manage_woocommerce', 'airsoft-reseller-payouts', array( __CLASS__, 'admin' ) );
+  add_submenu_page( Airsoft_Product_Manager_Category_Page::PAGE_SLUG, 'Orders & earnings', 'Orders & earnings', 'manage_woocommerce', 'airsoft-reseller-payouts', array( __CLASS__, 'admin' ) );
  }
  public static function admin_assets( $hook ) {
   if ( false === strpos( (string) $hook, 'airsoft-reseller-payouts' ) ) { return; }
@@ -700,7 +710,7 @@ class Airsoft_Product_Manager_Reseller_Orders {
  }
  public static function admin() {
   if ( ! current_user_can( 'manage_woocommerce' ) ) { return; }
-  echo '<div class="wrap airsoft-reseller-payout-admin"><header class="airsoft-payout-header"><div><p class="airsoft-payout-eyebrow">PRODUCT MANAGER</p><h1>Reseller payouts</h1><p class="airsoft-payout-intro">Review reseller earnings, manage payout settings, and resolve return or withdrawal requests.</p></div><a class="button" href="#return-requests">Review return requests</a></header><div class="airsoft-payout-guidance"><span class="dashicons dashicons-info-outline" aria-hidden="true"></span><p><strong>Manual payment reminder</strong><br>Wallet releases credit the reseller wallet. For Bank, transfer funds outside the site first, then record the payment reference. Each order item can be released once. Refunds after payment show an adjustment for manual reconciliation; checkout tax and shipping remain with the site.</p></div><section class="airsoft-payout-settings"><div class="airsoft-payout-section-heading"><div><h2>Payout settings</h2><p>Set the commission for new orders and choose the default payout destination.</p></div></div><div class="airsoft-payout-settings-grid"><article class="airsoft-payout-card"><h3>Commission rate</h3><p>Applies to new reseller orders. Existing orders keep their saved rate.</p><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="airsoft_reseller_commission">';
+  echo '<div class="wrap airsoft-reseller-payout-admin"><header class="airsoft-payout-header"><div><p class="airsoft-payout-eyebrow">PRODUCT MANAGER</p><h1>Orders &amp; earnings</h1><p class="airsoft-payout-intro">Review reseller earnings, manage payout settings, and resolve return or withdrawal requests.</p></div><a class="button" href="#return-requests">Review return requests</a></header><div class="airsoft-payout-guidance"><span class="dashicons dashicons-info-outline" aria-hidden="true"></span><p><strong>Manual payment reminder</strong><br>Wallet releases credit the reseller wallet. For Bank, transfer funds outside the site first, then record the payment reference. Each order item can be released once. Refunds after payment show an adjustment for manual reconciliation; checkout tax and shipping remain with the site.</p></div><section class="airsoft-payout-settings"><div class="airsoft-payout-section-heading"><div><h2>Payout settings</h2><p>Set the commission for new orders and choose the default payout destination.</p></div></div><div class="airsoft-payout-settings-grid"><article class="airsoft-payout-card"><h3>Commission rate</h3><p>Applies to new reseller orders. Existing orders keep their saved rate.</p><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="airsoft_reseller_commission">';
   wp_nonce_field( 'airsoft_commission' );
   Airsoft_Product_Manager_Resellers::field( 'Commission % for new orders', 'commission', self::rate(), 'number', 'required min="0" max="100" step="0.01"' );
   echo '<button class="button button-primary">Save commission</button></form></article><article class="airsoft-payout-card"><h3>Default destination</h3><p>Bank pauses wallet use while preserving existing balances. In Wallet mode, you can still choose Bank for an individual payout.</p><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="airsoft_reseller_payout_settings">';

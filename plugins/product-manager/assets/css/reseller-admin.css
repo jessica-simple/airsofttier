@@ -67,6 +67,28 @@
 .airsoft-reseller-payout-admin .airsoft-payout-card select { display: block; width: 100%; max-width: 100%; margin-top: 6px; }
 .airsoft-reseller-payout-admin .airsoft-payout-orders { background: var(--payout-canvas); }
 .airsoft-reseller-payout-admin .airsoft-payout-orders > h3 { font-size: 20px; }
+.airsoft-reseller-payout-admin .airsoft-payout-table-wrap { overflow-x: auto; margin-top: 18px; border: 1px solid var(--payout-line); border-radius: 8px; background: #fff; }
+.airsoft-reseller-payout-admin .airsoft-payout-table { min-width: 1120px; border: 0; border-collapse: collapse; }
+.airsoft-reseller-payout-admin .airsoft-payout-table th { padding: 12px 14px; background: #f9fafb; color: #475467; font-size: 12px; text-align: left; }
+.airsoft-reseller-payout-admin .airsoft-payout-table td { padding: 14px; vertical-align: top; line-height: 1.45; }
+.airsoft-reseller-payout-admin .airsoft-payout-table td:nth-child(1) { min-width: 105px; }
+.airsoft-reseller-payout-admin .airsoft-payout-table td:nth-child(2) { min-width: 175px; }
+.airsoft-reseller-payout-admin .airsoft-payout-table td:nth-child(3) { min-width: 200px; }
+.airsoft-reseller-payout-admin .airsoft-payout-table td:nth-child(4) { min-width: 120px; white-space: nowrap; }
+.airsoft-reseller-payout-admin .airsoft-payout-table td:nth-child(5) { min-width: 190px; }
+.airsoft-reseller-payout-admin .airsoft-payout-table td:nth-child(6) { min-width: 290px; }
+.airsoft-reseller-payout-admin .airsoft-payout-cell-detail { display: block; margin-top: 5px; color: var(--payout-muted); font-size: 12px; font-weight: 400; white-space: normal; }
+.airsoft-reseller-payout-admin .airsoft-payout-warning { color: #9a6700; }
+.airsoft-reseller-payout-admin .airsoft-payout-table details { margin-top: 8px; }
+.airsoft-reseller-payout-admin .airsoft-payout-table details summary { cursor: pointer; color: #385b83; }
+.airsoft-reseller-payout-admin .airsoft-payout-action-form { display: grid; grid-template-columns: max-content max-content; gap: 7px 8px; min-width: 265px; }
+.airsoft-reseller-payout-admin .airsoft-payout-action-form label { color: #475467; font-size: 12px; }
+.airsoft-reseller-payout-admin .airsoft-payout-action-form > label,
+.airsoft-reseller-payout-admin .airsoft-payout-action-form > p { grid-column: 1 / -1; }
+.airsoft-reseller-payout-admin .airsoft-payout-action-form select { margin-left: 5px; }
+.airsoft-reseller-payout-admin .airsoft-payout-action-form p { margin: 0; }
+.airsoft-reseller-payout-admin .airsoft-payout-action-form input[type="text"] { width: 100%; }
+.airsoft-reseller-payout-admin .airsoft-payout-action-form .button { justify-self: start; }
 .airsoft-reseller-payout-admin .airsoft-payout-order { padding: 18px; margin: 16px 0 0; border: 1px solid var(--payout-line); border-radius: 8px; background: #fff; }
 .airsoft-reseller-payout-admin .airsoft-payout-order h4 { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
 .airsoft-reseller-payout-admin .airsoft-payout-order p { margin: 7px 0; color: #475467; line-height: 1.5; }
