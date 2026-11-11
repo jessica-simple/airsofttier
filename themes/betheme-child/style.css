@@ -1955,6 +1955,27 @@ tr.wc-block-cart-items__row:last-child:after {
     display: block;
 }
 
+/* Keep checked product categories and their ancestor rows in collapsed branches. */
+.mfn-advanced-filters-options .mfn-opt-expandable--has-children:not(.is-open):has(> input[name="tax_product_cat[]"]) > .mfn-opt-expandable-list:has(input:checked) {
+    display: block;
+    height: auto;
+}
+
+.mfn-advanced-filters-options .mfn-opt-expandable--has-children:not(.is-open):has(> input[name="tax_product_cat[]"]) > .mfn-opt-expandable-list > li:not(:has(input:checked)) {
+    display: none;
+}
+
+.mfn-advanced-filters-checkbox .mfn-opt-expandable-list li > input[type="checkbox"][name="tax_product_cat[]"]:checked::after {
+    border: 0;
+    color: var(--mfn-button-theme-bg);
+    content: "\00d7";
+    font-size: 16px;
+    height: auto;
+    line-height: 1;
+    transform: translate(-50%, -50%);
+    width: auto;
+}
+
 .mfn-opt-expandable-toggle {
     align-items: center;
     background: transparent;

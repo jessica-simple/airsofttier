@@ -131,14 +131,11 @@
             isOpen ? 'Hide options' : 'Show options'
         );
     }
-    function closeOtherExpandableItems(currentItem) {
+    function closeExpandableItems(scope, currentItem) {
         Array.prototype.forEach.call(
-            document.querySelectorAll(itemSelector),
+            scope.querySelectorAll(itemSelector + '.is-open'),
             function (item) {
-                if (
-                    item === currentItem ||
-                    !item.classList.contains('is-open')
-                ) {
+                if (currentItem && item.contains(currentItem)) {
                     return;
                 }
 
@@ -398,7 +395,9 @@
             var isOpen = !item.classList.contains('is-open');
 
             if (isOpen) {
-                closeOtherExpandableItems(item);
+                closeExpandableItems(document, item);
+            } else {
+                closeExpandableItems(item);
             }
 
             item.classList.toggle('is-open', isOpen);

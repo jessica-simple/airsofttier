@@ -50,5 +50,37 @@ Airsoft_Product_Manager_Cart_Followups::init();
 Airsoft_Product_Manager_Invalid_Cart::init();
 Airsoft_Product_Manager_Notifications::init();
 
+add_action( 'restrict_manage_posts', static function ( $post_type, $which ) {
+	if ( 'product' !== $post_type || 'top' !== $which || ! taxonomy_exists( 'product_brand' ) ) {
+		return;
+	}
+	?>
+	<label class="screen-reader-text" for="airsoft-brand-status"><?php esc_html_e( 'Filter by brand assignment', 'product-manager' ); ?></label>
+	<select name="airsoft_brand_status" id="airsoft-brand-status">
+		<option value=""><?php esc_html_e( 'Any brand status', 'product-manager' ); ?></option>
+		<option value="none" <?php selected( $_GET['airsoft_brand_status'] ?? '', 'none' ); ?>><?php esc_html_e( 'No brand', 'product-manager' ); ?></option>
+	</select>
+	<?php
+}, 10, 2 );
+
+add_action( 'pre_get_posts', static function ( $query ) {
+	global $pagenow;
+	if ( ! is_admin() || 'edit.php' !== $pagenow || ! $query->is_main_query()
+		|| 'product' !== $query->get( 'post_type' ) || ! taxonomy_exists( 'product_brand' )
+		|| 'none' !== ( $_GET['airsoft_brand_status'] ?? '' ) ) {
+		return;
+	}
+
+	$tax_query = array(
+		'relation' => 'AND',
+		array( 'taxonomy' => 'product_brand', 'operator' => 'NOT EXISTS' ),
+	);
+	$existing = $query->get( 'tax_query' );
+	if ( ! empty( $existing ) ) {
+		$tax_query[] = $existing;
+	}
+	$query->set( 'tax_query', $tax_query );
+}, 20 );
+
 register_activation_hook( AIRSOFT_PRODUCT_MANAGER_FILE, array( 'Airsoft_Product_Manager_Cart_Followups', 'activate' ) );
 register_deactivation_hook( AIRSOFT_PRODUCT_MANAGER_FILE, array( 'Airsoft_Product_Manager_Cart_Followups', 'deactivate' ) );

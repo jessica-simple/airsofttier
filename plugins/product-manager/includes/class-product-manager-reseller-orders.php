@@ -490,14 +490,53 @@ class Airsoft_Product_Manager_Reseller_Orders {
   }
   $order->save();
  }
+ public static function admin_order_filters() {
+  $status = sanitize_key( wp_unslash( $_GET['order_status'] ?? '' ) );
+  $month = sanitize_text_field( wp_unslash( $_GET['order_month'] ?? '' ) );
+  $search = sanitize_text_field( wp_unslash( $_GET['s'] ?? '' ) );
+  echo '<form method="get"><input type="hidden" name="page" value="airsoft-reseller-orders"><p class="search-box"><label class="screen-reader-text" for="order-search-input">Search orders</label><input id="order-search-input" type="search" name="s" value="' . esc_attr( $search ) . '"><button class="button">Search orders</button></p><div class="tablenav top"><div class="alignleft actions"><label class="screen-reader-text" for="order-month">Filter by month</label><select id="order-month" name="order_month"><option value="">All dates</option>';
+  for ( $i = 0; $i < 36; $i++ ) {
+   $date = new DateTimeImmutable( 'first day of this month', wp_timezone() );
+   $date = $date->modify( '-' . $i . ' months' );
+   $value = $date->format( 'Y-m' );
+   echo '<option value="' . esc_attr( $value ) . '"' . selected( $month, $value, false ) . '>' . esc_html( $date->format( 'F Y' ) ) . '</option>';
+  }
+  echo '</select><label class="screen-reader-text" for="order-status">Filter by status</label><select id="order-status" name="order_status"><option value="">All statuses</option>';
+  foreach ( wc_get_order_statuses() as $key => $label ) { $key = preg_replace( '/^wc-/', '', $key ); echo '<option value="' . esc_attr( $key ) . '"' . selected( $status, $key, false ) . '>' . esc_html( $label ) . '</option>'; }
+  echo '</select><button class="button">Filter</button></div><br class="clear"></div></form>';
+ }
+ private static function admin_order_rows() {
+  $status = sanitize_key( wp_unslash( $_GET['order_status'] ?? '' ) );
+  $month = sanitize_text_field( wp_unslash( $_GET['order_month'] ?? '' ) );
+  $search = sanitize_text_field( wp_unslash( $_GET['s'] ?? '' ) );
+  $page = max( 1, absint( $_GET['orders_page'] ?? 1 ) );
+  $matches = array();
+  for ( $batch = 1; ; $batch++ ) {
+   $rows = self::rows( 0, $batch, '', 200 );
+   foreach ( array_slice( $rows, 0, 200 ) as $row ) {
+    $order = wc_get_order( $row->order_id );
+    $item = $order ? $order->get_item( $row->order_item_id ) : false;
+    if ( ! $order || 'shop_order' !== $order->get_type() || ! $item ) { continue; }
+    if ( $status && ! $order->has_status( $status ) ) { continue; }
+    $date = $order->get_date_created();
+    if ( $month && ( ! $date || $date->date( 'Y-m' ) !== $month ) ) { continue; }
+    if ( $search && false === stripos( $order->get_order_number() . ' ' . $order->get_formatted_billing_full_name() . ' ' . $item->get_name(), $search ) ) { continue; }
+    $matches[] = $row;
+    if ( count( $matches ) >= $page * 20 + 1 ) { break 2; }
+   }
+   if ( count( $rows ) <= 200 ) { break; }
+  }
+  return array_slice( $matches, ( $page - 1 ) * 20, 21 );
+ }
  public static function render( $admin = false ) {
   $owner = $admin ? 0 : get_current_user_id();
-  $rows = self::rows( $owner );
+  $rows = $admin ? self::admin_order_rows() : self::rows( $owner );
   $more = count( $rows ) > 20;
   self::prime_item_state( array_map( static function( $row ) { return $row->order_item_id; }, (array) $rows ) );
-  echo '<h3>Orders and earnings</h3><p>Earnings exclude tax and shipping and include coupon discounts and item refunds. Payouts require a paid, completed order. Contact the site administrator about refund adjustments after payout.</p>';
-  if ( ! $rows ) { echo '<p>No reseller orders yet.</p>'; }
-  if ( $admin && $rows ) { echo '<div class="airsoft-payout-table-wrap"><table class="widefat striped airsoft-payout-table"><thead><tr><th scope="col">Order</th><th scope="col">Reseller</th><th scope="col">Item</th><th scope="col">Earnings</th><th scope="col">Payout</th><th scope="col">Action</th></tr></thead><tbody>'; }
+  if ( $admin ) { self::admin_order_filters(); }
+  if ( ! $admin ) { echo '<h3>Orders and earnings</h3><p>Earnings exclude tax and shipping and include coupon discounts and item refunds. Payouts require a paid, completed order. Contact the site administrator about refund adjustments after payout.</p>'; }
+  if ( ! $rows ) { echo '<p>No orders found.</p>'; }
+  if ( $admin && $rows ) { echo '<div class="airsoft-payout-table-wrap"><table class="wp-list-table widefat fixed striped table-view-list orders airsoft-payout-table"><thead><tr><th scope="col">Order</th><th scope="col">Date</th><th scope="col">Status</th><th scope="col">Reseller</th><th scope="col">Item</th><th scope="col">Earnings</th><th scope="col">Payout</th><th scope="col">Action</th></tr></thead><tbody>'; }
   foreach ( array_slice( $rows, 0, 20 ) as $row ) {
    $order = wc_get_order( $row->order_id );
    if ( ! $order || 'shop_order' !== $order->get_type() ) { continue; }
@@ -511,7 +550,7 @@ class Airsoft_Product_Manager_Reseller_Orders {
     $seller_id = absint( $item->get_meta( '_airsoft_reseller_owner' ) );
     $seller = get_userdata( $seller_id );
     $seller_status = $item->get_meta( '_airsoft_seller_status' );
-    echo '<tr><td><strong>#' . esc_html( $order->get_order_number() ) . '</strong><span class="airsoft-payout-cell-detail">' . esc_html( wc_get_order_status_name( $order->get_status() ) ) . '</span></td><td>' . esc_html( $seller ? $seller->display_name : 'Reseller #' . $seller_id ) . '<span class="airsoft-payout-cell-detail">Account ID: ' . $seller_id . '</span><details><summary>Bank details</summary>';
+    echo '<tr><td><a href="' . esc_url( $order->get_edit_order_url() ) . '"><strong>#' . esc_html( $order->get_order_number() ) . '</strong></a></td><td>' . esc_html( $order->get_date_created() ? $order->get_date_created()->date_i18n( get_option( 'date_format' ) ) : '—' ) . '</td><td><mark class="order-status status-' . esc_attr( $order->get_status() ) . '"><span>' . esc_html( wc_get_order_status_name( $order->get_status() ) ) . '</span></mark></td><td>' . esc_html( $seller ? $seller->display_name : 'Reseller #' . $seller_id ) . '<span class="airsoft-payout-cell-detail">Account ID: ' . $seller_id . '</span><details><summary>Bank details</summary>';
     self::render_bank_snapshot( self::bank_details( $seller_id ) );
     echo '</details></td><td>' . esc_html( self::item_label( $item ) ) . '<span class="airsoft-payout-cell-detail">Quantity: ' . esc_html( $item->get_quantity() ) . '</span><span class="airsoft-payout-cell-detail">Reseller status: ' . esc_html( $seller_status ? $seller_status : 'Not set' ) . '</span>';
     if ( $item->get_meta( '_airsoft_tracking' ) ) { echo '<span class="airsoft-payout-cell-detail">Tracking: ' . esc_html( $item->get_meta( '_airsoft_tracking' ) ) . '</span>'; }
@@ -560,7 +599,8 @@ class Airsoft_Product_Manager_Reseller_Orders {
   }
   if ( $admin && $rows ) { echo '</tbody></table></div>'; }
   $page = max( 1, absint( $_GET['orders_page'] ?? 1 ) );
-  $url = $admin ? admin_url( 'admin.php?page=airsoft-reseller-payouts' ) : add_query_arg( 'section', 'sales', Airsoft_Product_Manager_Resellers::url() );
+  $url = $admin ? admin_url( 'admin.php?page=airsoft-reseller-orders' ) : add_query_arg( 'section', 'sales', Airsoft_Product_Manager_Resellers::url() );
+  if ( $admin ) { $url = add_query_arg( array_intersect_key( wp_unslash( $_GET ), array_flip( array( 's', 'order_month', 'order_status' ) ) ), $url ); }
   if ( $page > 1 ) { echo '<a href="' . esc_url( add_query_arg( 'orders_page', $page - 1, $url ) ) . '">Previous</a> '; }
   if ( $more ) { echo '<a href="' . esc_url( add_query_arg( 'orders_page', $page + 1, $url ) ) . '">Next</a>'; }
  }
@@ -700,11 +740,18 @@ class Airsoft_Product_Manager_Reseller_Orders {
    }
   }
  }
+ public static function admin_orders() {
+  if ( ! current_user_can( 'manage_woocommerce' ) ) { return; }
+  echo '<div class="wrap airsoft-reseller-payout-admin airsoft-orders-list"><h1>Reseller orders</h1><section class="airsoft-payout-orders">';
+  self::render( true );
+  echo '</section></div>';
+ }
  public static function menu() {
+  add_submenu_page( Airsoft_Product_Manager_Category_Page::PAGE_SLUG, 'Reseller orders', 'Reseller orders', 'manage_woocommerce', 'airsoft-reseller-orders', array( __CLASS__, 'admin_orders' ) );
   add_submenu_page( Airsoft_Product_Manager_Category_Page::PAGE_SLUG, 'Orders & earnings', 'Orders & earnings', 'manage_woocommerce', 'airsoft-reseller-payouts', array( __CLASS__, 'admin' ) );
  }
  public static function admin_assets( $hook ) {
-  if ( false === strpos( (string) $hook, 'airsoft-reseller-payouts' ) ) { return; }
+  if ( false === strpos( (string) $hook, 'airsoft-reseller-payouts' ) && false === strpos( (string) $hook, 'airsoft-reseller-orders' ) ) { return; }
   $path = AIRSOFT_PRODUCT_MANAGER_DIR . 'assets/css/reseller-admin.css';
   wp_enqueue_style( 'airsoft-reseller-admin', AIRSOFT_PRODUCT_MANAGER_URL . 'assets/css/reseller-admin.css', array(), file_exists( $path ) ? filemtime( $path ) : '1.0.0' );
  }
@@ -715,9 +762,8 @@ class Airsoft_Product_Manager_Reseller_Orders {
   Airsoft_Product_Manager_Resellers::field( 'Commission % for new orders', 'commission', self::rate(), 'number', 'required min="0" max="100" step="0.01"' );
   echo '<button class="button button-primary">Save commission</button></form></article><article class="airsoft-payout-card"><h3>Default destination</h3><p>Bank pauses wallet use while preserving existing balances. In Wallet mode, you can still choose Bank for an individual payout.</p><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="airsoft_reseller_payout_settings">';
   wp_nonce_field( 'airsoft_reseller_payout_settings' );
-  echo '<label>Default payout destination<select name="destination"><option value="wallet"' . selected( self::default_destination(), 'wallet', false ) . '>Wallet</option><option value="bank"' . selected( self::default_destination(), 'bank', false ) . '>Bank (external payment recorded by admin)</option></select></label><button class="button button-primary">Save payout setting</button></form></article></div></section><section class="airsoft-payout-orders">';
-  self::render( true );
-  echo '</section>';
+  echo '<label>Default payout destination<select name="destination"><option value="wallet"' . selected( self::default_destination(), 'wallet', false ) . '>Wallet</option><option value="bank"' . selected( self::default_destination(), 'bank', false ) . '>Bank (external payment recorded by admin)</option></select></label><button class="button button-primary">Save payout setting</button></form></article></div></section>';
+
   global $wpdb;
   echo '<section class="airsoft-payout-section airsoft-payout-returns"><div class="airsoft-payout-section-heading"><div><h2 id="return-requests">Open return requests</h2><p>Review the return reason and order before resolving a request. Approval does not issue a refund; process refunds through WooCommerce.</p></div><span class="airsoft-payout-count">' . absint( self::return_request_count( array( 'requested', 'approved' ) ) ) . ' open</span></div>';
   $return_page = max( 1, absint( $_GET['return_page'] ?? 1 ) );

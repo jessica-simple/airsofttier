@@ -29,6 +29,10 @@ class Airsoft_Product_Manager_Reseller_Portal {
  public static function roles() { add_role( self::APPLICANT_ROLE, 'Reseller applicant', array( 'read' => true ) ); }
 
  public static function assets() {
+  if ( is_user_logged_in() && self::is_reseller_account() ) {
+   wp_enqueue_script( 'airsoft-reseller-account-link', AIRSOFT_PRODUCT_MANAGER_URL . 'assets/js/reseller-account-link.js', array(), filemtime( AIRSOFT_PRODUCT_MANAGER_DIR . 'assets/js/reseller-account-link.js' ), true );
+   wp_add_inline_script( 'airsoft-reseller-account-link', 'window.airsoftResellerPortalUrl = ' . wp_json_encode( self::url() ) . ';', 'before' );
+  }
   if ( ! self::page_key() ) { return; }
   wp_enqueue_style( 'airsoft-reseller', AIRSOFT_PRODUCT_MANAGER_URL . 'assets/css/reseller.css', array(), filemtime( AIRSOFT_PRODUCT_MANAGER_DIR . 'assets/css/reseller.css' ) );
   wp_enqueue_style( 'dashicons' );
@@ -146,7 +150,11 @@ class Airsoft_Product_Manager_Reseller_Portal {
   if ( $user && self::is_reseller_account( $user->ID ) ) { $errors->add( 'reseller_login', 'Please use the separate Reseller Login page for this account.' ); }
   return $errors;
  }
- public static function login_redirect( $redirect, $user ) { return $user && self::is_reseller_account( $user->ID ) ? self::url() : $redirect; }
+ public static function login_redirect( $redirect, $user ) {
+  // Staff may also have reseller roles or metadata; preserve their admin destination.
+  if ( ! $user || is_wp_error( $user ) || user_can( $user, 'manage_options' ) || user_can( $user, 'manage_woocommerce' ) ) { return $redirect; }
+  return self::is_reseller_account( $user->ID ) ? self::url() : $redirect;
+ }
  public static function wp_login_redirect( $redirect, $requested, $user ) { return is_wp_error( $user ) ? $redirect : self::login_redirect( $redirect, $user ); }
 
  public static function route() {

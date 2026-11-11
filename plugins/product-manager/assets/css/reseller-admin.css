@@ -129,3 +129,21 @@
 	.airsoft-reseller-payout-admin .airsoft-payout-card > p { min-height: 0; }
 	.airsoft-reseller-payout-admin .airsoft-withdrawal-request { align-items: flex-start; flex-direction: column; }
 }
+
+/* Match the native WooCommerce order list on the dedicated reseller page. */
+.airsoft-orders-list .airsoft-payout-orders { padding: 0; border: 0; background: transparent; }
+.airsoft-orders-list .airsoft-payout-table-wrap { margin-top: 0; border-radius: 0; border: 1px solid #c3c4c7; }
+.airsoft-orders-list .airsoft-payout-table { min-width: 1100px; }
+.airsoft-orders-list .airsoft-payout-table th { background: #fff; padding: 8px 10px; color: #2c3338; font-size: 14px; }
+.airsoft-orders-list .airsoft-payout-table td { padding: 10px; min-width: 0 !important; }
+.airsoft-orders-list .airsoft-payout-table th:last-child { width: 260px; }
+.airsoft-orders-list .tablenav .actions select { margin-right: 6px; }
+.airsoft-orders-list .order-status { display: inline-flex; padding: 5px 8px; border-radius: 4px; background: #e5e5e5; color: #454545; white-space: nowrap; }
+.airsoft-orders-list .status-processing { background: #c6e1c6; color: #2c4700; }
+.airsoft-orders-list .status-completed { background: #c8d7e1; color: #003d66; }
+.airsoft-orders-list .status-on-hold { background: #f8dda7; color: #573b00; }
+.airsoft-orders-list .status-failed { background: #eba3a3; color: #570000; }
+
+.airsoft-reseller-payout-admin.airsoft-orders-list { max-width: none; }
+.airsoft-orders-list .airsoft-payout-table-wrap,
+.airsoft-orders-list .airsoft-payout-table { width: 100%; }
